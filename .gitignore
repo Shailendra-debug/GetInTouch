@@ -1,4 +1,0 @@
-src/main/resources/application.properties
-.env
-target/
-*.log
