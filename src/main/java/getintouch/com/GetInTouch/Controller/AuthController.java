@@ -8,6 +8,7 @@ import getintouch.com.GetInTouch.Service.User.UserService;
 import getintouch.com.GetInTouch.Util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -76,6 +77,15 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
 
+    @Operation(
+            summary = "Send OTP for Forgot Password",
+            description = "Generates and sends OTP to user's email"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OTP sent successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponseDTO<ForgotPasswordResponseDto>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
@@ -89,6 +99,15 @@ public class AuthController {
         return ResponseEntity.ok(
                 ResponseUtil.success("Email Not Exists, OTP Not sent", response));
     }
+
+    @Operation(
+            summary = "Reset Password using OTP",
+            description = "Verifies OTP and resets user password"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid OTP / Expired OTP")
+    })
 
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponseDTO<ResetPasswordResponseDto>> resetPassword(
