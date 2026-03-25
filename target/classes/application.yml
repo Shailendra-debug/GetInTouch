@@ -1,0 +1,12 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: shailendrakushwaha732@gmail.com
+    password: vxdq cdwp snzj pmpc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
