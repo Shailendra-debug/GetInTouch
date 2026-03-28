@@ -21,7 +21,7 @@ spring:
 
   jpa:
     hibernate:
-    ddl-auto: update
+      ddl-auto: update   # ✅ correctly nested
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
@@ -36,3 +36,11 @@ app:
     admin:
       email: ${ADMIN_EMAIL}
       password: ${ADMIN_PASSWORD}
+
+#cloudflare:
+#  r2:
+#    access-key: ${R2_ACCESS_KEY}
+#    secret-key: ${R2_SECRET_KEY}
+#    endpoint: ${R2_ENDPOINT}
+#    bucket: ${R2_BUCKET}
+#    public-url: ${R2_PUBLIC_URL}

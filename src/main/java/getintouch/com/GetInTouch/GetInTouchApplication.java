@@ -14,4 +14,6 @@ public class GetInTouchApplication {
 		SpringApplication.run(GetInTouchApplication.class, args);
 	}
 
+
+
 }
