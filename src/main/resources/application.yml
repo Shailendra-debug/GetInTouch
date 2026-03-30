@@ -1,8 +1,13 @@
 
 
 spring:
+
   server:
-    port=${PORT:8080}:
+    port: ${PORT:8080}
+
+  main:
+      web-application-type: servlet
+
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}

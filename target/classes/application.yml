@@ -1,6 +1,8 @@
 
 
 spring:
+  server:
+    port=${PORT:8080}:
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
