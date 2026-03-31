@@ -243,30 +243,45 @@ public class AuthService {
     private void addCookie(HttpServletResponse response, String name,
                            String value, int maxAge) {
 
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
+        String cookie = name + "=" + value +
+                "; Max-Age=" + maxAge +
+                "; Path=/" +
+                "; Domain=getintouch-mk7b.onrender.com" + // ✅ FIX
+                "; HttpOnly" +
+                "; Secure" +
+                "; SameSite=None";
 
-        cookie.setSecure(true);        // 🔥 FIX (HTTPS ke liye)
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAge);
-
-        response.addCookie(cookie);
-
-        // 🔥 SAME SITE FIX (IMPORTANT)
-        response.setHeader("Set-Cookie",
-                name + "=" + value +
-                        "; Max-Age=" + maxAge +
-                        "; Path=/" +
-                        "; HttpOnly" +
-                        "; Secure" +
-                        "; SameSite=None"
-        );
+        response.addHeader("Set-Cookie", cookie); // ✅ addHeader use karo
     }
+
+//    private void addCookie(HttpServletResponse response, String name,
+//                           String value, int maxAge) {
+//
+//        Cookie cookie = new Cookie(name, value);
+//        cookie.setHttpOnly(true);
+//
+//        cookie.setSecure(true);        // 🔥 FIX (HTTPS ke liye)
+//        cookie.setPath("/");
+//        cookie.setMaxAge(maxAge);
+//        cookie.setDomain("getintouch-mk7b.onrender.com");
+//
+//        response.addCookie(cookie);
+//
+//        // 🔥 SAME SITE FIX (IMPORTANT)
+//        response.setHeader("Set-Cookie",
+//                name + "=" + value +
+//                        "; Max-Age=" + maxAge +
+//                        "; Path=/" +
+//                        "; HttpOnly" +
+//                        "; Secure" +
+//                        "; SameSite=None"
+//        );
+//    }
 
     private void clearCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // true in prod
+        cookie.setSecure(true); // true in prod
         cookie.setPath("/");
         cookie.setMaxAge(0);
 
