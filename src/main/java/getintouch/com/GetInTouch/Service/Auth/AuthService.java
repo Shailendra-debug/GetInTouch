@@ -245,11 +245,22 @@ public class AuthService {
 
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // true in prod
+
+        cookie.setSecure(true);        // 🔥 FIX (HTTPS ke liye)
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
 
         response.addCookie(cookie);
+
+        // 🔥 SAME SITE FIX (IMPORTANT)
+        response.setHeader("Set-Cookie",
+                name + "=" + value +
+                        "; Max-Age=" + maxAge +
+                        "; Path=/" +
+                        "; HttpOnly" +
+                        "; Secure" +
+                        "; SameSite=None"
+        );
     }
 
     private void clearCookie(HttpServletResponse response, String name) {
