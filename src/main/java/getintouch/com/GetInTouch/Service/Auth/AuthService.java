@@ -39,7 +39,7 @@ public class AuthService {
 
     /* ---------------- LOGIN ---------------- */
 
-    public LoginResponseDto login(LoginRequestDTO request, HttpServletResponse response) {
+    public LoginResponseDto login(LoginRequestDTO request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -51,36 +51,23 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        // 🍪 Cookies (optional but recommended for web)
-        addCookie(response, "ACCESS_TOKEN", accessToken, 15 * 60);
-        addCookie(response, "REFRESH_TOKEN", refreshToken, 7 * 24 * 60 * 60);
-
         saveRefreshToken(user, refreshToken);
 
-        // 📦 Response body
-        LoginResponseDto dto = new LoginResponseDto();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole().name());
-        dto.setAccessToken(accessToken);
-        dto.setRefreshToken(refreshToken);
-
-        return dto;
+        return LoginResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     /* ---------------- REFRESH TOKEN ---------------- */
 
-    public LoginResponseDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
-
-        String oldRefreshToken = extractTokenFromCookie(request, "REFRESH_TOKEN");
-
-        if (oldRefreshToken == null) {
-            throw new UnauthorizedException("Refresh token missing");
-        }
+    public LoginResponseDto refreshToken(String refreshToken) {
 
         RefreshToken storedToken = refreshTokenRepository
-                .findByToken(oldRefreshToken)
+                .findByToken(refreshToken)
                 .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
 
         if (storedToken.getExpiryDate().isBefore(LocalDateTime.now())) {
@@ -90,42 +77,21 @@ public class AuthService {
 
         User user = storedToken.getUser();
 
-        // 🔁 ROTATION
-        refreshTokenRepository.delete(storedToken);
-
         String newAccessToken = jwtUtil.generateAccessToken(user);
-        String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
-        saveRefreshToken(user, newRefreshToken);
-
-        addCookie(response, "ACCESS_TOKEN", newAccessToken, 15 * 60);
-        addCookie(response, "REFRESH_TOKEN", newRefreshToken, 7 * 24 * 60 * 60);
-
-        // 📦 Response body
-        LoginResponseDto dto = new LoginResponseDto();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole().name());
-        dto.setAccessToken(newAccessToken);
-        dto.setRefreshToken(newRefreshToken);
-
-        return dto;
+        return LoginResponseDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .build();
     }
 
     /* ---------------- LOGOUT ---------------- */
 
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
+    public void logout(String refreshToken) {
 
-        String refreshToken = extractTokenFromCookie(request, "REFRESH_TOKEN");
-
-        if (refreshToken != null) {
-            refreshTokenRepository.findByToken(refreshToken)
-                    .ifPresent(refreshTokenRepository::delete);
-        }
-
-        clearCookie(response, "ACCESS_TOKEN");
-        clearCookie(response, "REFRESH_TOKEN");
+        refreshTokenRepository.findByToken(refreshToken)
+                .ifPresent(refreshTokenRepository::delete);
     }
 
     /* ---------------- HELPERS ---------------- */

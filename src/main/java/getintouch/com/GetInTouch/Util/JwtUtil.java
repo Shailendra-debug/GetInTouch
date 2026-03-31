@@ -1,11 +1,8 @@
 package getintouch.com.GetInTouch.Util;
 
 import getintouch.com.GetInTouch.Entity.User.User;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,77 +19,105 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public LocalDateTime getRefreshExpiry() {
-        return LocalDateTime.now().plusDays(7);
-    }
-
+    /* ============================
+       ACCESS TOKEN
+    ============================ */
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
-                .claim("userId", user.getId())        // ✅ ADD THIS
+                .claim("userId", user.getId())
                 .claim("role", user.getRole().name())
+                .claim("type", "access") // 🔥 important
                 .setIssuedAt(new Date())
-                .setExpiration(
-                        new Date(System.currentTimeMillis() + ACCESS_EXPIRATION)
-                )
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public Long extractUserId(String token) {
-        Object userId = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("userId");
-
-        if (userId == null) {
-            return null;
-        }
-
-        return Long.parseLong(userId.toString());
-    }
-
+    /* ============================
+       REFRESH TOKEN
+    ============================ */
     public String generateRefreshToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
+                .claim("type", "refresh") // 🔥 important
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-    public String extractRole(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("role", String.class);
-    }
 
-
+    /* ============================
+       COMMON METHODS
+    ============================ */
     public String extractEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return getClaims(token).getSubject();
     }
 
+    public String extractRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public Long extractUserId(String token) {
+        Object id = getClaims(token).get("userId");
+        return id != null ? Long.parseLong(id.toString()) : null;
+    }
+
+    public String extractType(String token) {
+        return getClaims(token).get("type", String.class);
+    }
+
+    /* ============================
+       VALIDATION
+    ============================ */
     public boolean isTokenValid(String token) {
         try {
-            extractEmail(token);
-            return true;
+            Claims claims = getClaims(token);
+
+            // ✅ must be access token
+            if (!"access".equals(claims.get("type"))) {
+                return false;
+            }
+
+            return claims.getExpiration().after(new Date());
+
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        try {
+            Claims claims = getClaims(token);
+
+            // ✅ must be refresh token
+            if (!"refresh".equals(claims.get("type"))) {
+                return false;
+            }
+
+            return claims.getExpiration().after(new Date());
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /* ============================
+       INTERNAL
+    ============================ */
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public LocalDateTime getRefreshExpiry() {
+        return LocalDateTime.now().plusDays(7);
     }
 }

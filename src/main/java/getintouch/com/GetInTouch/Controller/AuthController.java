@@ -3,9 +3,12 @@ package getintouch.com.GetInTouch.Controller;
 import getintouch.com.GetInTouch.DTO.Auth.*;
 import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
+import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Service.Auth.AuthService;
 import getintouch.com.GetInTouch.Service.User.UserService;
 import getintouch.com.GetInTouch.Util.ResponseUtil;
+import getintouch.com.GetInTouch.security.CustomUserDetails;
+import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,11 +16,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jdk.jshell.execution.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Tag(name = "Authentication APIs", description = "Login, Register, JWT Refresh, Logout")
 @RestController
@@ -35,7 +41,7 @@ public class AuthController {
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
 
-        return ResponseEntity.ok(authService.login(request, response));
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @Operation(summary = "User Registration", description = "Register a new user")
@@ -52,28 +58,28 @@ public class AuthController {
     @Operation(summary = "Refresh Token", description = "Generate new access token using refresh token")
     @ApiResponse(responseCode = "200", description = "Token refreshed successfully")
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refresh(
-            HttpServletRequest request,
-            HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDto> refresh(@RequestBody RefreshTokesDto refreshTokesDto) {
 
-        LoginResponseDto dto = authService.refreshToken(request, response);
+        LoginResponseDto dto = authService.refreshToken(refreshTokesDto.getRefreshToken());
         return ResponseEntity.ok(dto);
     }
 
-    @Operation(summary = "Get Current User", description = "Returns authenticated user details")
     @GetMapping("/me")
-    public Authentication me(Authentication authentication) {
-        return authentication;
+    public ResponseEntity<?> me(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        Long userId = SecurityUtil.getCurrentUserId();
+        return ResponseEntity.ok(userService.getById(userId));
     }
 
     @Operation(summary = "Logout", description = "Invalidate user session and tokens")
     @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(
-            HttpServletRequest request,
-            HttpServletResponse response) {
+    public ResponseEntity<String> logout(@RequestBody RefreshTokesDto dto) {
 
-        authService.logout(request, response);
+        authService.logout(dto.getRefreshToken());
         return ResponseEntity.ok("Logged out successfully");
     }
 

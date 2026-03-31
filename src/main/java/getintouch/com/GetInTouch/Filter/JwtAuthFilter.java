@@ -4,7 +4,6 @@ import getintouch.com.GetInTouch.Util.JwtUtil;
 import getintouch.com.GetInTouch.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,46 +29,41 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String token = extractTokenFromCookie(request);
+        String token = extractTokenFromHeader(request); // ✅ FIXED
 
         if (token != null && jwtUtil.isTokenValid(token)) {
 
             String email = jwtUtil.extractEmail(token);
             Long userId = jwtUtil.extractUserId(token);
-            String role = jwtUtil.extractRole(token); // 🔥 FIX HERE
+            String role = jwtUtil.extractRole(token);
 
-            if (email != null && userId != null && role != null) {
+            List<SimpleGrantedAuthority> authorities =
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-                List<SimpleGrantedAuthority> authorities =
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role));
+            CustomUserDetails userDetails =
+                    new CustomUserDetails(userId, email, authorities);
 
-                CustomUserDetails userDetails =
-                        new CustomUserDetails(userId, email, authorities);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            authorities
+                    );
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                authorities
-                        );
-
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authentication);
-            }
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private String extractTokenFromCookie(HttpServletRequest request) {
+    // ✅ NEW METHOD (IMPORTANT)
+    private String extractTokenFromHeader(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
 
-        if (request.getCookies() == null) return null;
-
-        for (Cookie cookie : request.getCookies()) {
-            if ("ACCESS_TOKEN".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
+
         return null;
     }
 }
