@@ -35,8 +35,19 @@ spring:
 server:
   port: ${SERVER_PORT}
 
-jwt:
-  secret: ${JWT_SECRET}
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:getintouch-mk7b.onrender.com}
+    access-ttl-seconds: 900
+    refresh-ttl-seconds: 604800
+    refresh-token-cookie-name: refreshToken
+
+    cookie-secure: true        # 🔥 REQUIRED (HTTPS)
+    cookie-http-only: true
+    cookie-same-site: none     # 🔥 REQUIRED for cross-origin
+    # ❌ DO NOT SET cookie-domain (important)
+
 
 app:
   bootstrap:

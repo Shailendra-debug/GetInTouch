@@ -35,8 +35,18 @@ spring:
 server:
   port: ${SERVER_PORT}
 
-jwt:
-  secret: ${JWT_SECRET}
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:yourdomain.com}
+    access-ttl-seconds: 900
+    refresh-ttl-seconds: 604800
+    refresh-token-cookie-name: refreshToken
+
+    cookie-secure: false
+    cookie-http-only: true
+    cookie-same-site: lax
+
 
 app:
   bootstrap:

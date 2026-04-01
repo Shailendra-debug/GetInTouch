@@ -4,7 +4,9 @@ import getintouch.com.GetInTouch.DTO.Auth.*;
 import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
 import getintouch.com.GetInTouch.Entity.User.User;
+import getintouch.com.GetInTouch.Exception.UnauthorizedException;
 import getintouch.com.GetInTouch.Service.Auth.AuthService;
+import getintouch.com.GetInTouch.Service.Auth.CookieService;
 import getintouch.com.GetInTouch.Service.User.UserService;
 import getintouch.com.GetInTouch.Util.ResponseUtil;
 import getintouch.com.GetInTouch.security.CustomUserDetails;
@@ -33,15 +35,26 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final CookieService cookieService;
 
     @Operation(summary = "User Login", description = "Authenticate user and return JWT tokens")
     @ApiResponse(responseCode = "200", description = "Login successful")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
             @RequestBody LoginRequestDTO request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            HttpServletRequest httpRequest) {
 
-        return ResponseEntity.ok(authService.login(request));
+        LoginResponseDto dto = authService.login(request);
+
+        boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
+
+        if (dto.getRefreshToken() != null && isWeb) {
+            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
+            dto.setRefreshToken(dto.getRefreshToken()); // 🔥 hide for web
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
     @Operation(summary = "User Registration", description = "Register a new user")
@@ -58,9 +71,28 @@ public class AuthController {
     @Operation(summary = "Refresh Token", description = "Generate new access token using refresh token")
     @ApiResponse(responseCode = "200", description = "Token refreshed successfully")
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refresh(@RequestBody RefreshTokesDto refreshTokesDto) {
+    public ResponseEntity<LoginResponseDto> refresh(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestBody(required = false) RefreshTokesDto body
+    ) {
 
-        LoginResponseDto dto = authService.refreshToken(refreshTokesDto.getRefreshToken());
+        String refreshToken = cookieService.getRefreshToken(request)
+                .orElse(body != null ? body.getRefreshToken() : null);
+
+        if (refreshToken == null) {
+            throw new UnauthorizedException("Refresh token not found");
+        }
+
+        LoginResponseDto dto = authService.refreshToken(refreshToken);
+
+        boolean isWeb = cookieService.getRefreshToken(request).isPresent();
+
+        if (isWeb) {
+            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
+            dto.setRefreshToken(dto.getRefreshToken());
+        }
+
         return ResponseEntity.ok(dto);
     }
 
@@ -77,9 +109,31 @@ public class AuthController {
     @Operation(summary = "Logout", description = "Invalidate user session and tokens")
     @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody RefreshTokesDto dto) {
+    public ResponseEntity<String> logout(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestBody(required = false) RefreshTokesDto body
+    ) {
 
-        authService.logout(dto.getRefreshToken());
+        String refreshToken = null;
+
+        // ✅ 1. Try cookie (Web)
+        if (request.getCookies() != null) {
+            refreshToken = cookieService.getRefreshToken(request).orElse(null);
+        }
+
+        // ✅ 2. Fallback to body (Android)
+        if (refreshToken == null && body != null) {
+            refreshToken = body.getRefreshToken();
+        }
+
+        if (refreshToken != null) {
+            authService.logout(refreshToken);
+        }
+
+        // 🍪 3. ALWAYS delete cookie (for Web)
+        cookieService.deleteRefreshCookie(response);
+
         return ResponseEntity.ok("Logged out successfully");
     }
 

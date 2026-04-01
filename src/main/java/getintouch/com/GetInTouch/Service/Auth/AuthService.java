@@ -5,6 +5,7 @@ import getintouch.com.GetInTouch.Entity.User.PasswordResetOtp;
 import getintouch.com.GetInTouch.Entity.User.RefreshToken;
 import getintouch.com.GetInTouch.Entity.User.Role;
 import getintouch.com.GetInTouch.Entity.User.User;
+import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.UnauthorizedException;
 import getintouch.com.GetInTouch.Repository.PasswordResetOtpRepository;
 import getintouch.com.GetInTouch.Repository.RefreshTokenRepository;
@@ -64,6 +65,7 @@ public class AuthService {
 
     /* ---------------- REFRESH TOKEN ---------------- */
 
+    @Transactional
     public LoginResponseDto refreshToken(String refreshToken) {
 
         RefreshToken storedToken = refreshTokenRepository
@@ -75,17 +77,31 @@ public class AuthService {
             throw new UnauthorizedException("Refresh token expired");
         }
 
+        if (storedToken.isRevoked()) {
+            throw new UnauthorizedException("Token already used (possible reuse attack)");
+        }
+
         User user = storedToken.getUser();
 
+        // 🔥 rotate (revoke old)
+        storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
+
+        // 🔥 generate new tokens
         String newAccessToken = jwtUtil.generateAccessToken(user);
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+        // 🔥 save new token (same device)
+        saveRefreshToken(user, newRefreshToken);
 
         return LoginResponseDto.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
+                .id(user.getId())
+                .email(user.getEmail())
                 .role(user.getRole().name())
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
-
     /* ---------------- LOGOUT ---------------- */
 
     public void logout(String refreshToken) {
@@ -98,17 +114,9 @@ public class AuthService {
 
     private void saveRefreshToken(User user, String tokenValue) {
 
-        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
+        RefreshToken token = new RefreshToken();
 
-        RefreshToken token;
-
-        if (existingToken.isPresent()) {
-            token = existingToken.get();   // update existing
-        } else {
-            token = new RefreshToken();    // create new
-            token.setUser(user);
-        }
-
+        token.setUser(user);
         token.setToken(tokenValue);
         token.setExpiryDate(jwtUtil.getRefreshExpiry());
 
@@ -118,11 +126,6 @@ public class AuthService {
     public ForgotPasswordResponseDto sendOtp(ForgotPasswordRequestDto request) {
 
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-
-        if (!userRepository.existsByEmail(request.getEmail()))
-            return ForgotPasswordResponseDto.builder()
-                .otpSent(false) // always true (security)
-                .build();
 
         // avoid email enumeration
         if (userOpt.isEmpty()) {
@@ -135,7 +138,7 @@ public class AuthService {
 
         otpRepo.findTopByEmailOrderByCreatedAtDesc(email).ifPresent(existing -> {
             if (existing.getCreatedAt().plusMinutes(1).isAfter(LocalDateTime.now())) {
-                throw new RuntimeException("Too many requests. Try later.");
+                throw new BadRequestException("Too many requests. Try later.");
             }
         });
 
@@ -164,14 +167,14 @@ public class AuthService {
 
         PasswordResetOtp otpEntity = otpRepo
                 .findTopByEmailOrderByCreatedAtDesc(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid request"));
+                .orElseThrow(() -> new BadRequestException("Invalid request"));
 
         if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP expired");
+            throw new BadRequestException("OTP expired");
         }
 
         if (otpEntity.getAttemptCount() >= MAX_ATTEMPTS) {
-            throw new RuntimeException("Too many failed attempts");
+            throw new BadRequestException("Too many failed attempts");
         }
 
         if (!passwordEncoder.matches(request.getOtp(), otpEntity.getOtpHash())) {
@@ -179,11 +182,11 @@ public class AuthService {
             otpEntity.setAttemptCount(otpEntity.getAttemptCount() + 1);
             otpRepo.save(otpEntity);
 
-            throw new RuntimeException("Invalid OTP");
+            throw new BadRequestException("Invalid OTP");
         }
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
@@ -195,39 +198,4 @@ public class AuthService {
                 .build();
     }
 
-    private String extractTokenFromCookie(HttpServletRequest request, String name) {
-        if (request.getCookies() == null) return null;
-
-        for (Cookie cookie : request.getCookies()) {
-            if (name.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
-    }
-
-    private void addCookie(HttpServletResponse response, String name,
-                           String value, int maxAge) {
-
-        String cookie = name + "=" + value +
-                "; Max-Age=" + maxAge +
-                "; Path=/" +
-                "; Domain=getintouch-mk7b.onrender.com" + // ✅ FIX
-                "; HttpOnly" +
-                "; Secure" +
-                "; SameSite=None";
-
-        response.addHeader("Set-Cookie", cookie); // ✅ addHeader use karo
-    }
-
-
-    private void clearCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // true in prod
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-
-        response.addCookie(cookie);
-    }
 }
