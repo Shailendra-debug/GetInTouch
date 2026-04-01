@@ -2,6 +2,8 @@ package getintouch.com.GetInTouch.Controller;
 
 import getintouch.com.GetInTouch.DTO.HomePage.SliderRequest;
 import getintouch.com.GetInTouch.DTO.HomePage.SliderResponse;
+import getintouch.com.GetInTouch.DTO.HomePage.URL_Dtu;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.HomePage.SliderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ import java.util.List;
 public class SliderController {
 
     private final SliderService sliderService;
+    private final FileUploadService fileUploadService;
 
     /* =====================================================
        GET ACTIVE SLIDERS (PUBLIC)
@@ -54,10 +58,10 @@ public class SliderController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SliderResponse> createSlider(
-            @Valid @RequestBody SliderRequest request) {
+            @RequestParam MultipartFile file) {
 
         return new ResponseEntity<>(
-                sliderService.createSlider(request),
+                sliderService.createSlider(file),
                 HttpStatus.CREATED
         );
     }
@@ -90,4 +94,5 @@ public class SliderController {
         sliderService.deleteSlider(id);
         return ResponseEntity.noContent().build();
     }
+
 }

@@ -5,8 +5,11 @@ import getintouch.com.GetInTouch.DTO.HomePage.SliderResponse;
 import getintouch.com.GetInTouch.Entity.HomePage.Slider;
 import getintouch.com.GetInTouch.Mapper.SliderMapper;
 import getintouch.com.GetInTouch.Repository.SliderRepository;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +24,9 @@ public class SliderService {
 
     private final SliderMapper sliderMapper;
 
+    private final FileUploadService fileUploadService;
+
+
     public List<SliderResponse> getActiveSliders() {
         return sliderRepository.findAllByActiveTrueOrderByDisplayOrderAsc()
                 .stream()
@@ -34,8 +40,12 @@ public class SliderService {
                 .collect(Collectors.toList());
     }
 
-    public SliderResponse createSlider(SliderRequest request) {
-            Slider slider = sliderMapper.toEntity(request);
+    public SliderResponse createSlider(@RequestParam MultipartFile file) {
+        String url= fileUploadService.uploadFile(file,"slider");
+            Slider slider = new Slider();
+            slider.setImageUrl(url);
+            slider.setActive(true);
+            slider.setDisplayOrder(1);
         return sliderMapper.toResponse(sliderRepository.save(slider));
     }
 
@@ -44,7 +54,7 @@ public class SliderService {
                 .orElseThrow(() -> new RuntimeException("Slider not found"));
 
         // map fields from request to existing entity
-        slider.setImageUrl(request.getImageUrl());
+        slider.setImageUrl(slider.getImageUrl());
         slider.setActive(request.isActive());
         slider.setDisplayOrder(request.getDisplayOrder());
 

@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final long ACCESS_EXPIRATION = 1000 * 60 * 15; // 15 min
+    private final long ACCESS_EXPIRATION = 1000 * 60 * 15* 60; // 15 min
     private final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
     @Value("${jwt.secret}")
