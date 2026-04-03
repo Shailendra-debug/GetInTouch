@@ -24,6 +24,8 @@ public class Marquee {
     @Column(nullable = false)
     private Boolean active = false;
 
+    private String url;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

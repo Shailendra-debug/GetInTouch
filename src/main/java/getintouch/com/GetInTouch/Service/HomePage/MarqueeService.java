@@ -20,7 +20,7 @@ public class MarqueeService {
     public MarqueeResponse getActiveMarquee() {
         return marqueeRepository.findFirstByActiveTrue()
                 .map(marqueeMapper::toResponse)
-                .orElse(new MarqueeResponse("", false));
+                .orElse(new MarqueeResponse("", false,null));
     }
 
     public MarqueeResponse updateMarquee(Long id, MarqueeRequest request) {
@@ -31,6 +31,14 @@ public class MarqueeService {
         marquee.setActive(request.isActive());
 
         return marqueeMapper.toResponse(marqueeRepository.save(marquee));
+    }
+
+    public MarqueeResponse getAdminMarquee(){
+
+        return marqueeRepository.findById(1L)
+                .map(marqueeMapper::toResponse)
+                .orElse(new MarqueeResponse("", false,null));
+
     }
 }
 

@@ -14,6 +14,7 @@ public class MarqueeMapper {
         MarqueeResponse response = new MarqueeResponse();
         response.setText(marquee.getText());
         response.setActive(marquee.getActive());
+        response.setUrl(marquee.getUrl());
         return response;
     }
 
@@ -21,6 +22,7 @@ public class MarqueeMapper {
         Marquee marquee = new Marquee();
         marquee.setText(request.getText());
         marquee.setActive(request.isActive());
+        marquee.setUrl(request.getUrl());
         return marquee;
     }
 }

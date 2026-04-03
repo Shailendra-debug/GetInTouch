@@ -50,6 +50,7 @@ public class AuthController {
         boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
 
         if (dto.getRefreshToken() != null && isWeb) {
+            cookieService.attachAccessCookie(response, dto.getAccessToken());
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
             dto.setRefreshToken(dto.getRefreshToken()); // 🔥 hide for web
         }
@@ -62,6 +63,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(
             @Valid @RequestBody UserRegisterRequestDto request) {
+
+
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -89,6 +92,7 @@ public class AuthController {
         boolean isWeb = cookieService.getRefreshToken(request).isPresent();
 
         if (isWeb) {
+            cookieService.attachAccessCookie(response, dto.getAccessToken());
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
             dto.setRefreshToken(dto.getRefreshToken());
         }
@@ -105,9 +109,6 @@ public class AuthController {
         Long userId = SecurityUtil.getCurrentUserId();
         return ResponseEntity.ok(userService.getById(userId));
     }
-
-    @Operation(summary = "Logout", description = "Invalidate user session and tokens")
-    @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
             HttpServletRequest request,
@@ -118,21 +119,21 @@ public class AuthController {
         String refreshToken = null;
 
         // ✅ 1. Try cookie (Web)
-        if (request.getCookies() != null) {
-            refreshToken = cookieService.getRefreshToken(request).orElse(null);
-        }
+        refreshToken = cookieService.getRefreshToken(request).orElse(null);
 
         // ✅ 2. Fallback to body (Android)
         if (refreshToken == null && body != null) {
             refreshToken = body.getRefreshToken();
         }
 
+        // ✅ 3. Invalidate refresh token in DB
         if (refreshToken != null) {
             authService.logout(refreshToken);
         }
 
-        // 🍪 3. ALWAYS delete cookie (for Web)
+        // 🍪 4. ALWAYS delete cookies
         cookieService.deleteRefreshCookie(response);
+        cookieService.deleteAccessCookie(response);
 
         return ResponseEntity.ok("Logged out successfully");
     }

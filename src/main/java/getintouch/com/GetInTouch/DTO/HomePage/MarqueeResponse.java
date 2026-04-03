@@ -12,4 +12,5 @@ import lombok.*;
 public class MarqueeResponse {
     private String text;
     private boolean active;
+    private String url;
 }

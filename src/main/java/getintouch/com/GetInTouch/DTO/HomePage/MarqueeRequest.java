@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class MarqueeRequest {
     private String text;
     private boolean active;
+    private String url;
 
     // getters & setters
 }
