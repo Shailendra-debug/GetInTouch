@@ -136,11 +136,11 @@ public class AuthService {
 
         String email = request.getEmail();
 
-        otpRepo.findTopByEmailOrderByCreatedAtDesc(email).ifPresent(existing -> {
-            if (existing.getCreatedAt().plusMinutes(1).isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("Too many requests. Try later.");
-            }
-        });
+//        otpRepo.findTopByEmailOrderByCreatedAtDesc(email).ifPresent(existing -> {
+//            if (existing.getCreatedAt().plusMinutes(1).isAfter(LocalDateTime.now())) {
+//                throw new BadRequestException("Too many requests. Try later.");
+//            }
+//        });
 
         String otp = otpUtil.generateOtp();
 
@@ -152,9 +152,9 @@ public class AuthService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        emailService.sendOtp(email, otp);
         otpRepo.save(entity);
 
-        emailService.sendOtp(email, otp);
 
         return ForgotPasswordResponseDto.builder()
                 .otpSent(true)

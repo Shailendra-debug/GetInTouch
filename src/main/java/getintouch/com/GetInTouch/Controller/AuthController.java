@@ -1,15 +1,15 @@
 package getintouch.com.GetInTouch.Controller;
 
 import getintouch.com.GetInTouch.DTO.Auth.*;
+import getintouch.com.GetInTouch.DTO.Users.RegisterSendOtpResponseDto;
+import getintouch.com.GetInTouch.DTO.Users.RegisterVerifyOtpRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
-import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Exception.UnauthorizedException;
 import getintouch.com.GetInTouch.Service.Auth.AuthService;
 import getintouch.com.GetInTouch.Service.Auth.CookieService;
 import getintouch.com.GetInTouch.Service.User.UserService;
 import getintouch.com.GetInTouch.Util.ResponseUtil;
-import getintouch.com.GetInTouch.security.CustomUserDetails;
 import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,14 +18,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jdk.jshell.execution.Util;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @Tag(name = "Authentication APIs", description = "Login, Register, JWT Refresh, Logout")
 @RestController
@@ -50,7 +46,7 @@ public class AuthController {
         boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
 
         if (dto.getRefreshToken() != null && isWeb) {
-            cookieService.attachAccessCookie(response, dto.getAccessToken());
+            //cookieService.attachAccessCookie(response, dto.getAccessToken());
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
             dto.setRefreshToken(dto.getRefreshToken()); // 🔥 hide for web
         }
@@ -61,14 +57,21 @@ public class AuthController {
     @Operation(summary = "User Registration", description = "Register a new user")
     @ApiResponse(responseCode = "201", description = "User created successfully")
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(
+    public ResponseEntity<RegisterSendOtpResponseDto> register(
             @Valid @RequestBody UserRegisterRequestDto request) {
+        return ResponseEntity.ok(userService.register(request));
+    }
 
+    @Operation(
+            summary = "Verify OTP and Complete Registration",
+            description = "Verify OTP sent to email and create user account"
+    )
+    @ApiResponse(responseCode = "200", description = "OTP verified and user registered successfully")
+    @PostMapping("/verify-otp")
+    public ResponseEntity<UserResponseDto> verifyOtp(
+            @Valid @RequestBody RegisterVerifyOtpRequestDto request) {
 
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(userService.register(request));
+        return ResponseEntity.ok(userService.RegisterVerifyOtpSaveUser(request));
     }
 
     @Operation(summary = "Refresh Token", description = "Generate new access token using refresh token")
@@ -92,7 +95,7 @@ public class AuthController {
         boolean isWeb = cookieService.getRefreshToken(request).isPresent();
 
         if (isWeb) {
-            cookieService.attachAccessCookie(response, dto.getAccessToken());
+            //cookieService.attachAccessCookie(response, dto.getAccessToken());
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
             dto.setRefreshToken(dto.getRefreshToken());
         }
@@ -133,7 +136,7 @@ public class AuthController {
 
         // 🍪 4. ALWAYS delete cookies
         cookieService.deleteRefreshCookie(response);
-        cookieService.deleteAccessCookie(response);
+        //cookieService.deleteAccessCookie(response);
 
         return ResponseEntity.ok("Logged out successfully");
     }

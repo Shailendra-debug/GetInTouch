@@ -39,9 +39,9 @@ server:
 jwt:
   secret: ${JWT_SECRET}
   refresh-token-cookie-name: RefreshToken
-  cookie-secure: true
   cookie-http-only: true
-  cookie-same-site: None
+  cookie-secure: false
+  cookie-same-site: Lax
   refresh-ttl-seconds: 604800   # 7 days
 
 

@@ -1,14 +1,14 @@
 package getintouch.com.GetInTouch.Service.User;
-import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
-import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
-import getintouch.com.GetInTouch.DTO.Users.UserUpdateRequestDto;
+import getintouch.com.GetInTouch.DTO.Users.*;
+import jakarta.validation.Valid;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserResponseDto register(UserRegisterRequestDto request);
+    RegisterSendOtpResponseDto register(UserRegisterRequestDto request);
 
     @PreAuthorize("hasRole('ADMIN')")
     List<UserResponseDto> getAll();
@@ -25,4 +25,5 @@ public interface UserService {
     @PreAuthorize("hasRole('ADMIN')")
     void makeAdmin(Long userId);
 
+    @Nullable UserResponseDto RegisterVerifyOtpSaveUser(@Valid RegisterVerifyOtpRequestDto request);
 }

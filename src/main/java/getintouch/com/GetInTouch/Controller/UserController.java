@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.Controller;
 
+import getintouch.com.GetInTouch.DTO.Users.RegisterSendOtpResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.UserUpdateRequestDto;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Tag(name = "User APIs", description = "Manage users and roles")
 @RestController
-@RequestMapping("/api/users")
+    @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -30,7 +31,7 @@ public class UserController {
     @Operation(summary = "Register User", description = "Register a new user (Public API)")
     @ApiResponse(responseCode = "201", description = "User registered successfully")
     @PostMapping
-    public ResponseEntity<UserResponseDto> register(
+    public ResponseEntity<RegisterSendOtpResponseDto> register(
             @Valid @RequestBody UserRegisterRequestDto request) {
 
         return ResponseEntity
@@ -86,7 +87,6 @@ public class UserController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -15,42 +15,32 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CookieService {
 
-    @Value("${security.jwt.refresh-token-cookie-name:refreshToken}")
+    @Value("${jwt.refresh-token-cookie-name:RefreshToken}")
     private String refreshTokenCookieName;
 
-    @Value("${security.jwt.cookie-secure:false}")
-    private boolean cookieSecure;
-
-    @Value("${security.jwt.cookie-http-only:true}")
+    @Value("${jwt.cookie-http-only:true}")
     private boolean cookieHttpOnly;
 
-    @Value("${security.jwt.cookie-same-site:Lax}")
-    private String cookieSameSite;
-
-    @Value("${security.jwt.refresh-ttl-seconds:604800}")
+    @Value("${jwt.refresh-ttl-seconds:604800}")
     private long refreshTtl;
 
-    @Value("${security.jwt.cookie-domain:}")
-    private String cookieDomain;
+    @Value("${jwt.access-token-cookie-name:AccessToken}")
+    private String accessTokenCookieName;
 
-    // ✅ Attach Refresh Token Cookie
+    // ✅ Attach Refresh Token
     public void attachRefreshCookie(HttpServletResponse response, String value) {
-        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie
-                .from(refreshTokenCookieName, value)
+        ResponseCookie cookie = ResponseCookie.from(refreshTokenCookieName, value)
                 .httpOnly(cookieHttpOnly)
-                .secure(cookieSecure)
+                .secure(false) // 🔥 MUST for localhost
                 .path("/")
                 .maxAge(refreshTtl)
-                .sameSite(cookieSameSite);
+                .sameSite("Lax") // 🔥 IMPORTANT
+                .build();
 
-        if (cookieDomain != null && !cookieDomain.isBlank()) {
-            builder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    // ✅ Get Cookie Value
+    // ✅ Get Refresh Token
     public Optional<String> getRefreshToken(HttpServletRequest request) {
         if (request.getCookies() == null) return Optional.empty();
 
@@ -60,53 +50,29 @@ public class CookieService {
                 .findFirst();
     }
 
-    // ✅ Delete Cookie
+    // ✅ Delete Refresh Token
     public void deleteRefreshCookie(HttpServletResponse response) {
-        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie
-                .from(refreshTokenCookieName, "")
+        ResponseCookie cookie = ResponseCookie.from(refreshTokenCookieName, "")
                 .httpOnly(cookieHttpOnly)
-                .secure(cookieSecure)
+                .secure(false)
                 .path("/")
                 .maxAge(0)
-                .sameSite(cookieSameSite);
+                .sameSite("Lax")
+                .build();
 
-        if (cookieDomain != null && !cookieDomain.isBlank()) {
-            builder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
+
+    // (Optional) Access cookie if needed
     public void attachAccessCookie(HttpServletResponse response, String value) {
-
-        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie
-                .from("AccessToken", value)
+        ResponseCookie cookie = ResponseCookie.from(accessTokenCookieName, value)
                 .httpOnly(cookieHttpOnly)
-                .secure(cookieSecure)
+                .secure(false)
                 .path("/")
-                .maxAge(15 * 60) // 15 min
-                .sameSite(cookieSameSite);
+                .maxAge(15 * 60)
+                .sameSite("Lax")
+                .build();
 
-        if (cookieDomain != null && !cookieDomain.isBlank()) {
-            builder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
-    public void deleteAccessCookie(HttpServletResponse response) {
-
-        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie
-                .from("AccessToken", "")
-                .httpOnly(cookieHttpOnly)
-                .secure(cookieSecure)
-                .path("/")
-                .maxAge(0)
-                .sameSite(cookieSameSite);
-
-        if (cookieDomain != null && !cookieDomain.isBlank()) {
-            builder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
-    }
-
 }

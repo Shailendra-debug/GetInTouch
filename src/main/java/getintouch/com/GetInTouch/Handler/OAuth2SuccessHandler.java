@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.Handler;
 
 
+import getintouch.com.GetInTouch.Configuration.PasswordConfig;
 import getintouch.com.GetInTouch.Entity.User.RefreshToken;
 import getintouch.com.GetInTouch.Entity.User.Role;
 import getintouch.com.GetInTouch.Entity.User.User;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -36,6 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final CookieService cookieService;
     @Value("${app.frontend.url}")
     private String frontendUrl;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -55,25 +58,23 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }else {
             user=new User();
             user.setEmail(email);
-            user.setPassword(generatePassword());
+            user.setPassword(passwordEncoder.encode(generatePassword()));
             user.setRole(Role.USER);
             user.setFullName(name);
             user.setUsername(email);
             userRepository.save(user);
         }
         // ✅ Generate tokens
-        String accessToken = jwtUtil.generateAccessToken(user);
+        //String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         // ✅ Save refresh token
         saveRefreshToken(user, refreshToken);
 
         // ✅ Use CookieService (clean + secure)
-        cookieService.attachAccessCookie(response, accessToken);
         cookieService.attachRefreshCookie(response, refreshToken);
 
-        // ✅ Redirect to frontend
-        response.sendRedirect(frontendUrl);
+        getRedirectStrategy().sendRedirect(request, response, frontendUrl);
     }
 
     public static String generatePassword() {
