@@ -1,5 +1,7 @@
 package getintouch.com.GetInTouch.Service.Auth;
 
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +29,6 @@ public class EmailService {
     public void sendOtp(String to, String otp) {
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setTo(to);
-            helper.setSubject("Reset Your Password");
-
             String htmlContent = """
     <!DOCTYPE html>
     <html>
@@ -85,10 +81,15 @@ public class EmailService {
     </body>
     </html>
     """.formatted(otp);
+            Resend resend = new Resend("re_TxmxrL4z_81UTRk41LdnMWspaknnAVyzn");
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from("getintouch790@resend.dev")
+                    .to(to)
+                    .subject("Reset Your Password")
+                    .html(htmlContent)
+                    .build();
 
-            helper.setText(htmlContent, true);
-
-            mailSender.send(message);
+            resend.emails().send(params);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to send email", e);
@@ -98,68 +99,51 @@ public class EmailService {
     public void sendRegisterOtp(String to, String otp) {
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setTo(to);
-            helper.setSubject("Verify Your Email");
 
             String htmlContent = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f4f4;
-                    padding: 20px;
-                }
-                .container {
-                    max-width: 500px;
-                    margin: auto;
-                    background: #ffffff;
-                    padding: 20px;
-                    border-radius: 10px;
-                    text-align: center;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }
-                .otp {
-                    font-size: 30px;
-                    font-weight: bold;
-                    color: #27ae60;
-                    letter-spacing: 6px;
-                    margin: 20px 0;
-                }
-                .footer {
-                    font-size: 12px;
-                    color: #888;
-                    margin-top: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h2>🎉 Welcome to Our App</h2>
-                <p>Thanks for registering!</p>
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px; margin:0;">
 
-                <p>Your verification OTP is:</p>
-                <div class="otp">%s</div>
+    <div style="max-width:500px; margin:auto; background:#ffffff; padding:20px; border-radius:10px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
 
-                <p>This OTP is valid for <b>5 minutes</b>.</p>
+        <!-- ✅ TITLE -->
+        <h2 style="margin:10px 0;">🎉 Welcome to GetInTouch</h2>
+        <p>Thanks for registering!</p>
 
-                <p>Please enter this OTP to activate your account.</p>
+        <!-- ✅ OTP -->
+        <p>Your verification OTP is:</p>
+        <div style="font-size:30px; font-weight:bold; color:#27ae60; letter-spacing:6px; margin:20px 0;">
+            %s
+        </div>
 
-                <div class="footer">
-                    © 2026 Your App. All rights reserved.
-                </div>
-            </div>
-        </body>
-        </html>
-        """.formatted(otp);
+        <!-- ✅ INFO -->
+        <p>This OTP is valid for <b>5 minutes</b>.</p>
+        <p>Please enter this OTP to activate your account.</p>
 
-            helper.setText(htmlContent, true);
+        <!-- ✅ FOOTER -->
+        <div style="font-size:12px; color:#888; margin-top:20px;">
+            © 2026 GetInTouch. All rights reserved.
+        </div>
 
-            mailSender.send(message);
+    </div>
+
+</body>
+</html>
+""".formatted(otp);
+
+            Resend resend = new Resend("re_TxmxrL4z_81UTRk41LdnMWspaknnAVyzn");
+
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from("getintouch790@resend.dev")
+                    .to(to)
+                    .subject("Verify Your Email")
+                    .html(htmlContent)
+                    .build();
+
+            resend.emails().send(params);
 
         } catch (Exception e) {
             throw new BadRequestException("Failed to send OTP email"+e);
