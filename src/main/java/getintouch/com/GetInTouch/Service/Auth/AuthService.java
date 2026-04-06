@@ -152,7 +152,7 @@ public class AuthService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        emailService.sendOtp(email, otp);
+        emailService.sendResetOtp(email, otp);
         otpRepo.save(entity);
 
 

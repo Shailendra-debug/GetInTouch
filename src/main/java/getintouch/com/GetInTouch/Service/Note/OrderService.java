@@ -100,11 +100,9 @@ public class OrderService {
         User user = userRepository.getReferenceById(order.getUserId());
 
         // 📧 Send Email
-        emailService.sendMail(
+        emailService.sendPaymentStatusEmail(
                 user.getEmail(),
-                "Payment Approved 🎉",
-                "Your payment is approved. You can now download your notes."
-        );
+                true);
     }
 
     // ❌ Reject Order
@@ -118,10 +116,9 @@ public class OrderService {
         User user = userRepository.getReferenceById(order.getUserId());
 
         // 📧 Send Email
-        emailService.sendMail(
+        emailService.sendPaymentStatusEmail(
                 user.getEmail(),
-                "Payment Rejected ❌",
-                "Your payment was not approved. Please try again."
+                false
         );
     }
 
