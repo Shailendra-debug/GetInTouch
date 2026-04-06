@@ -37,4 +37,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     AND o.status = 'APPROVED'
 """)
     List<Notes> findAllApprovedNotes(Long userId);
+
+    long countByStatus(OrderStatus status);
 }
