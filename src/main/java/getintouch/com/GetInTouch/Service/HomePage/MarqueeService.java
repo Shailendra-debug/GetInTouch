@@ -29,6 +29,7 @@ public class MarqueeService {
 
         marquee.setText(request.getText());
         marquee.setActive(request.isActive());
+        marquee.setUrl(request.getUrl());
 
         return marqueeMapper.toResponse(marqueeRepository.save(marquee));
     }
