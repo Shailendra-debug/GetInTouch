@@ -151,12 +151,12 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Email already registered");
         }
 
-        // ✅ Rate limiting (1 min)
-        otpRepo.findTopByEmailOrderByCreatedAtDesc(email).ifPresent(existing -> {
-            if (existing.getCreatedAt().plusSeconds(60).isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("OTP already Send. Try After 60 Second.");
-            }
-        });
+//        // ✅ Rate limiting (1 min)
+//        otpRepo.findTopByEmailOrderByCreatedAtDesc(email).ifPresent(existing -> {
+//            if (existing.getCreatedAt().plusSeconds(60).isAfter(LocalDateTime.now())) {
+//                throw new BadRequestException("OTP already Send. Try After 60 Second.");
+//            }
+//        });
 
         String otp = otpUtil.generateOtp();
 
