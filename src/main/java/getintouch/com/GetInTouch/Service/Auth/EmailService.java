@@ -17,7 +17,7 @@ public class EmailService {
     @Value("${RESEND_API_KEY}")
     private String apiKey;
 
-    private static final String FROM_EMAIL = "getintouch790@resend.dev";
+    private static final String FROM_EMAIL = "support@skushwaha.in";
 
 
 
