@@ -5,8 +5,13 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.mail.search.SearchTerm;
+import org.hibernate.internal.util.collections.LinkedIdentityHashMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.math.BigInteger;
+import java.util.*;
 
 @Configuration
 public class SwaggerSecurityConfig {
@@ -24,4 +29,6 @@ public class SwaggerSecurityConfig {
                                 .bearerFormat("JWT")
                 ));
     }
+
+
 }

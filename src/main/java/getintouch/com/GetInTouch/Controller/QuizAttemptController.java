@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.Controller;
 
+import getintouch.com.GetInTouch.DTO.Quiz.QuizSubmitByQuizIdDtu;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizSubmitRequestDto;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizSubmitResponseDto;
 import getintouch.com.GetInTouch.Service.Quiz.QuizAttemptService;
@@ -9,11 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Quiz Attempt APIs", description = "Submit quiz and view results")
 @RestController
@@ -62,5 +65,14 @@ public class QuizAttemptController {
 
         Long userId = SecurityUtil.getCurrentUserId();
         return ResponseEntity.ok(service.getAllByUserId(userId));
+    }
+
+
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping("/quiz/{id}")
+    public ResponseEntity<List<QuizSubmitByQuizIdDtu>>getAllSubmitQuizForAdmin(@PathVariable long id){
+        List<QuizSubmitByQuizIdDtu>list=service.getAllByQuizId(id);
+        if (list==null)return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ok(list);
     }
 }

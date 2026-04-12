@@ -1,19 +1,18 @@
 package getintouch.com.GetInTouch.Service.Quiz;
 
-import getintouch.com.GetInTouch.DTO.Quiz.QuestionAnswerDto;
-import getintouch.com.GetInTouch.DTO.Quiz.QuestionResultDto;
-import getintouch.com.GetInTouch.DTO.Quiz.QuizSubmitRequestDto;
-import getintouch.com.GetInTouch.DTO.Quiz.QuizSubmitResponseDto;
+import getintouch.com.GetInTouch.DTO.Quiz.*;
 import getintouch.com.GetInTouch.Entity.Question.Question;
 import getintouch.com.GetInTouch.Entity.Quiz.QuizAttempt;
 import getintouch.com.GetInTouch.Entity.Quiz.QuizAttemptAnswer;
 import getintouch.com.GetInTouch.Entity.Quiz.QuizType;
 import getintouch.com.GetInTouch.Entity.Quiz.ResultStatus;
+import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.QuizAttemptMapper;
 import getintouch.com.GetInTouch.Repository.QuizAttemptAnswerRepository;
 import getintouch.com.GetInTouch.Repository.QuizAttemptRepository;
+import getintouch.com.GetInTouch.Repository.QuizRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class QuizAttemptServiceImpl implements QuizAttemptService {
 
+    private final QuizRepository quizRepository;
     private final QuizAttemptRepository attemptRepository;
     private final QuizAttemptAnswerRepository answerRepository;
     private final QuizAttemptMapper mapper;
@@ -163,6 +163,24 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                     return mapper.toResponse(attempt, results);
                 })
                 .toList();
+    }
+
+    @Override
+    public List<QuizSubmitByQuizIdDtu> getAllByQuizId(Long quizId) {
+        if (quizRepository.existsById(quizId)){
+            return attemptRepository.findByQuizId(quizId).stream().map(this::setAll).toList();
+        }
+        return null;
+    }
+    private QuizSubmitByQuizIdDtu setAll(QuizAttempt attempt){
+        User user=attempt.getUser();
+        return QuizSubmitByQuizIdDtu.builder()
+                .userId(user.getId())
+                .fullName(user.getFullName())
+                .attemptId(attempt.getId())
+                .totalScore(attempt.getScore())
+                .status(attempt.getStatus())
+                .build();
     }
 }
 

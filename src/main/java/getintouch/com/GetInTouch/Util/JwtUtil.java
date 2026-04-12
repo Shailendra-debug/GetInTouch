@@ -119,16 +119,4 @@ public class JwtUtil {
     public LocalDateTime getRefreshExpiry() {
         return LocalDateTime.now().plusDays(7);
     }
-
-    private static int count(int arr[],int k){
-        int num=0;
-        Map<Integer,Integer>map=new HashMap<>();
-        for (int i = 0; i < arr.length; i++) {
-            int a=k-arr[i];
-            if (map.containsKey(a)){
-                num++;
-            }else map.put(arr[i],i);
-        }
-        return num;
-    }
 }

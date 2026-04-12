@@ -22,5 +22,6 @@ public interface QuizAttemptRepository
     // get all attempts of a quiz (leaderboard use)
     List<QuizAttempt> findByQuizId(Long quizId);
 
+
     long countBySubmitted(boolean submitted);
 }

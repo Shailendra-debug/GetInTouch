@@ -8,6 +8,8 @@ import getintouch.com.GetInTouch.Repository.MarqueeRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
+
 @Service
 @AllArgsConstructor
 public class MarqueeService {
@@ -40,6 +42,34 @@ public class MarqueeService {
                 .map(marqueeMapper::toResponse)
                 .orElse(new MarqueeResponse("", false,null));
 
+    }
+
+    public List<List<String>> groupAnagrams(String[] strs) {
+        List<List<Character>>list=new ArrayList<>();
+        List<List<String>>ans=new ArrayList<>();
+        Map<String,Integer>map=new HashMap<>();
+        for (String i:strs){
+            List<Character>temp=new ArrayList<>();
+            for (char j:i.toCharArray()){
+                temp.add(j);
+            }
+            Collections.sort(temp);
+            list.add(temp);
+        }
+        int index=0;
+        for (int i = 0; i < list.size(); i++) {
+            String str=list.get(i).toString();
+            if (map.containsKey(str)){
+                ans.get(map.get(str)).add(strs[i]);
+            }else {
+                map.put(str, index);
+                List<String> temp = new ArrayList<>();
+                temp.add(strs[i]);
+                ans.add(temp);
+                index++;
+            }
+        }
+        return ans;
     }
 }
 
