@@ -14,7 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Quiz APIs", description = "Manage quizzes and quiz lifecycle")
 @RestController
@@ -122,5 +125,24 @@ public class QuizController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteQuiz(@PathVariable Long quizId) {
         quizService.deleteQuiz(quizId);
+    }
+
+    public String removeTrailingZeros(String num) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int j = num.length() - 1;
+        boolean check = true;
+
+        while (j >= 0) {
+            char ch = num.charAt(j);
+
+            if (ch == '0' && check) {
+                // skip trailing zeros
+            } else {
+                check = false;
+                stringBuilder.append(ch);
+            }
+            j--;
+        }
+        return stringBuilder.reverse().toString();
     }
 }
