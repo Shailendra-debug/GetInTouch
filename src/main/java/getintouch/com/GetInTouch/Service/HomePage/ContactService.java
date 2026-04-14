@@ -1,9 +1,12 @@
 package getintouch.com.GetInTouch.Service.HomePage;
 
+import getintouch.com.GetInTouch.DTO.HomePage.ContactUsDTO;
+import getintouch.com.GetInTouch.DTO.HomePage.Contect_Status;
 import getintouch.com.GetInTouch.Entity.HomePage.Contact;
 import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Repository.ContactRepository;
 import getintouch.com.GetInTouch.Repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +20,17 @@ public class ContactService {
     private final UserRepository userRepository;
 
 
-    public Contact save(Contact contact) {
-        User user=userRepository.getReferenceById(contact.getUserId());
-        contact.setEmail(user.getEmail());
-        return repo.save(contact);
+    public Contact save(ContactUsDTO contact,Long userId) {
+        User user=userRepository.getReferenceById(userId);
+        Contact new_contact=new Contact();
+        new_contact.setEmail(user.getEmail());
+        new_contact.setRead(false);
+        new_contact.setStatus(Contect_Status.PENDING);
+        new_contact.setName(user.getFullName());
+        new_contact.setSubject(contact.getSubject());
+        new_contact.setMessage(contact.getMessage());
+        new_contact.setUserId(userId);
+        return repo.save(new_contact);
     }
 
     public List<Contact> getAll() {
@@ -39,11 +49,12 @@ public class ContactService {
         return repo.save(contact);
     }
 
-    public Contact updateStatus(Long id, String status) {
+    public Contact updateStatus(Long id, Contect_Status status) {
         Contact contact = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contact not found"));
 
         contact.setStatus(status);
         return repo.save(contact);
     }
+
 }

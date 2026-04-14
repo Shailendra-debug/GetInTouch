@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.Entity.HomePage;
 
+import getintouch.com.GetInTouch.DTO.HomePage.Contect_Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +29,7 @@ public class Contact {
 
     private boolean isRead = false; // 👈 NEW
 
-    private String status = "PENDING"; // PENDING / RESOLVED
+    private Contect_Status status = Contect_Status.PENDING; // PENDING / RESOLVED
 
     private LocalDateTime createdAt;
 

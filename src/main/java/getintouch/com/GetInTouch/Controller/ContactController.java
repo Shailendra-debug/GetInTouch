@@ -1,4 +1,6 @@
 package getintouch.com.GetInTouch.Controller;
+import getintouch.com.GetInTouch.DTO.HomePage.ContactUsDTO;
+import getintouch.com.GetInTouch.DTO.HomePage.Contect_Status;
 import getintouch.com.GetInTouch.Entity.HomePage.Contact;
 import getintouch.com.GetInTouch.Service.HomePage.ContactService;
 import getintouch.com.GetInTouch.security.SecurityUtil;
@@ -29,7 +31,7 @@ public class ContactController {
     // ✅ USER: Send message
     @Operation(summary = "Send contact message")
     @PostMapping
-    public Contact send(@Valid @RequestBody Contact contact) {
+    public Contact send(@Valid @RequestBody ContactUsDTO contact) {
 
         Long userId = SecurityUtil.getCurrentUserId();
 
@@ -37,9 +39,7 @@ public class ContactController {
             throw new RuntimeException("Unauthorized");
         }
 
-        contact.setUserId(userId);
-
-        return service.save(contact);
+        return service.save(contact,userId);
     }
 
     // 🔐 ADMIN: Get all messages
@@ -71,7 +71,7 @@ public class ContactController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/status/{id}")
     public Contact updateStatus(@PathVariable Long id,
-                                @RequestParam String status) {
+                                @RequestParam Contect_Status status) {
         return service.updateStatus(id, status);
     }
 }
