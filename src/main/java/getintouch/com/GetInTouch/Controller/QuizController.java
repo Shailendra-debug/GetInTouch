@@ -61,7 +61,7 @@ public class QuizController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllQuizzes() {
-        return ResponseEntity.ok(quizService.getAllActiveQuizzes());
+        return ResponseEntity.ok(quizService.getAllQuizzes());
     }
 
 
