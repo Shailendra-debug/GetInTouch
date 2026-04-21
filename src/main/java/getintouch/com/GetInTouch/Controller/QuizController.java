@@ -50,10 +50,20 @@ public class QuizController {
     @Operation(summary = "Get All Quizzes", description = "Fetch all active quizzes")
     @ApiResponse(responseCode = "200", description = "Quizzes fetched successfully")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @GetMapping
+    @GetMapping("/active")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllActiveQuizzes() {
+        return ResponseEntity.ok(quizService.getAllActiveQuizzes());
+    }
+
+
+    @Operation(summary = "Get All Quizzes", description = "Fetch all quizzes")
+    @ApiResponse(responseCode = "200", description = "Quizzes fetched successfully")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping()
     public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllQuizzes() {
         return ResponseEntity.ok(quizService.getAllActiveQuizzes());
     }
+
 
     /* =====================================================
        GET QUIZ SUMMARY

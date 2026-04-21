@@ -75,6 +75,15 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    public List<QuizResponseWithoutQuestionsDTO> getAllQuizzes() {
+
+        return quizRepository.findAll()
+                .stream()
+                .map(QuizMapper::toWithoutQuestions)
+                .toList();
+    }
+
+    @Override
     public QuizResponseWithoutQuestionsDTO getQuizSummary(Long quizId) {
 
         Quiz quiz = quizRepository.findById(quizId)
@@ -175,4 +184,6 @@ public class QuizServiceImpl implements QuizService {
 
         quizRepository.delete(quiz);
     }
+
+
 }

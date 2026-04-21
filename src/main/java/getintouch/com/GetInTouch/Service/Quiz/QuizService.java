@@ -8,6 +8,9 @@ import java.util.List;
 
 public interface QuizService {
 
+
+    List<QuizResponseWithoutQuestionsDTO> getAllQuizzes();
+
     QuizResponseWithQuestionsDTO createQuiz(QuizRequestDTO request);
 
     List<QuizResponseWithoutQuestionsDTO> getAllActiveQuizzes();
