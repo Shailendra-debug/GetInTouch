@@ -10,8 +10,12 @@ import java.util.List;
 public class QuestionResultDto {
 
     private Long questionId;
+    private String question;
+    private List<String> options;
+
     private List<Integer> selectedIndexes;
     private List<Integer> correctIndexes;
+
     private boolean correct;
     private int marksObtained;
 }

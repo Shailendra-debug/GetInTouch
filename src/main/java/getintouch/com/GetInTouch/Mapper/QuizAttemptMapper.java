@@ -7,7 +7,6 @@ import getintouch.com.GetInTouch.Entity.Quiz.QuizAttemptAnswer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
 @Component
 public class QuizAttemptMapper {
 
@@ -45,8 +44,20 @@ public class QuizAttemptMapper {
     ) {
         return QuestionResultDto.builder()
                 .questionId(answer.getQuestion().getId())
-                .selectedIndexes(answer.getSelectedIndexes())
-                .correctIndexes(answer.getCorrectIndexes())
+
+                // ✅ Added (VERY IMPORTANT)
+                .question(answer.getQuestion().getQuestion())
+                .options(answer.getQuestion().getOptions())
+
+                .selectedIndexes(
+                        answer.getSelectedIndexes() != null
+                                ? answer.getSelectedIndexes()
+                                : List.of()
+                )
+
+                // ✅ FIXED (no duplication)
+                .correctIndexes(answer.getQuestion().getCorrect())
+
                 .correct(answer.isCorrect())
                 .marksObtained(answer.getMarksObtained())
                 .build();

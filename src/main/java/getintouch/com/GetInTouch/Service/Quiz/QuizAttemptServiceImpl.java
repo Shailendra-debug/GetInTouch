@@ -38,7 +38,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     @Override
     public QuizSubmitResponseDto submitQuiz(QuizSubmitRequestDto request) {
 
-        if (request.getAnswers()==null) {
+        if (request.getAnswers() == null) {
             throw new BadRequestException("Answers cannot be empty");
         }
 
@@ -46,7 +46,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Attempt not found"));
 
-        if (attempt.isSubmitted()&&attempt.getQuiz().getType()== QuizType.LIVE) {
+        if (attempt.isSubmitted() && attempt.getQuiz().getType() == QuizType.LIVE) {
             throw new BadRequestException("Quiz already submitted");
         }
 
@@ -57,12 +57,9 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                                 QuestionAnswerDto::getQuestionId,
                                 a -> a,
                                 (a, b) -> {
-                                    throw new BadRequestException(
-                                            "Duplicate answers for same question"
-                                    );
+                                    throw new BadRequestException("Duplicate answers for same question");
                                 }
                         ));
-
 
         int score = 0;
         int correct = 0;
@@ -88,12 +85,12 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 correct++;
             }
 
+            // ✅ FIXED (removed correctIndexes duplication)
             QuizAttemptAnswer answer =
                     QuizAttemptAnswer.builder()
                             .attempt(attempt)
                             .question(q)
                             .selectedIndexes(new ArrayList<>(ans.getSelectedIndexes()))
-                            .correctIndexes(new ArrayList<>(q.getCorrect()))
                             .correct(isCorrect)
                             .marksObtained(marks)
                             .build();
@@ -137,8 +134,9 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Attempt not found"));
 
+        // ✅ FIXED (JOIN FETCH method)
         List<QuestionResultDto> results =
-                answerRepository.findByAttemptId(attemptId)
+                answerRepository.findByAttemptIdWithQuestion(attemptId)
                         .stream()
                         .map(mapper::toQuestionResult)
                         .toList();
@@ -155,25 +153,38 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         return attemptRepository.findByUserId(userId)
                 .stream()
                 .map(attempt -> {
+
+                    // ✅ FIXED (avoid N+1 issue)
                     List<QuestionResultDto> results =
-                            answerRepository.findByAttemptId(attempt.getId())
+                            answerRepository.findByAttemptIdWithQuestion(attempt.getId())
                                     .stream()
                                     .map(mapper::toQuestionResult)
                                     .toList();
+
                     return mapper.toResponse(attempt, results);
                 })
                 .toList();
     }
 
+    /* ================= GET ALL BY QUIZ ================= */
+
     @Override
     public List<QuizSubmitByQuizIdDtu> getAllByQuizId(Long quizId) {
-        if (quizRepository.existsById(quizId)){
-            return attemptRepository.findByQuizId(quizId).stream().map(this::setAll).toList();
+
+        if (!quizRepository.existsById(quizId)) {
+            throw new ResourceNotFoundException("Quiz not found");
         }
-        return null;
+
+        return attemptRepository.findByQuizId(quizId)
+                .stream()
+                .map(this::setAll)
+                .toList();
     }
-    private QuizSubmitByQuizIdDtu setAll(QuizAttempt attempt){
-        User user=attempt.getUser();
+
+    private QuizSubmitByQuizIdDtu setAll(QuizAttempt attempt) {
+
+        User user = attempt.getUser();
+
         return QuizSubmitByQuizIdDtu.builder()
                 .userId(user.getId())
                 .fullName(user.getFullName())
@@ -183,5 +194,3 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 .build();
     }
 }
-
-

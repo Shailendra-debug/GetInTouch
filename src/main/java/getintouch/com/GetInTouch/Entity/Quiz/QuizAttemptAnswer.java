@@ -20,10 +20,13 @@ public class QuizAttemptAnswer {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attempt_id", nullable = false)
     private QuizAttempt attempt;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
     private Question question;
+
     @ElementCollection
     @CollectionTable(
             name = "attempt_selected_indexes",
