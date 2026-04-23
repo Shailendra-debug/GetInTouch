@@ -6,9 +6,11 @@ import getintouch.com.GetInTouch.Entity.Quiz.QuizAttempt;
 import getintouch.com.GetInTouch.Entity.Quiz.QuizAttemptAnswer;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
 import java.util.List;
 @Component
 public class QuizAttemptMapper {
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
     /* ---------- ENTITY → RESPONSE DTO ---------- */
     public QuizSubmitResponseDto toResponse(
@@ -32,8 +34,16 @@ public class QuizAttemptMapper {
                 .totalMarks(attempt.getTotalMarks())
                 .percentage(attempt.getPercentage())
                 .status(attempt.getStatus().name())
-                .startTime(attempt.getStartTime())
-                .endTime(attempt.getEndTime())
+                .startTime(
+                        attempt.getStartTime() != null
+                                ? attempt.getStartTime().atZoneSameInstant(IST)
+                                : null
+                )
+                .endTime(
+                        attempt.getEndTime() != null
+                                ? attempt.getEndTime().atZoneSameInstant(IST)
+                                : null
+                )
                 .results(results)
                 .build();
     }

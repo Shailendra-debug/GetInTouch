@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -117,7 +119,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         );
 
         attempt.setSubmitted(true);
-        attempt.setEndTime(LocalDateTime.now());
+        attempt.setEndTime(OffsetDateTime.now(ZoneOffset.UTC));
 
         attemptRepository.save(attempt);
 

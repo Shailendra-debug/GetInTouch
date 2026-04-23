@@ -6,6 +6,7 @@ import lombok.*;
 
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "quiz_attempts")
@@ -35,8 +36,8 @@ public class QuizAttempt {
     @Enumerated(EnumType.STRING)
     private ResultStatus status;
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private OffsetDateTime startTime;
+    private OffsetDateTime endTime;
 
     private boolean submitted;
 }

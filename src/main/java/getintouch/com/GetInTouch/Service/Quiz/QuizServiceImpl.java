@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -119,7 +121,7 @@ public class QuizServiceImpl implements QuizService {
 
         if (quiz.getType() == QuizType.LIVE) {
 
-            LocalDateTime now = LocalDateTime.now();
+            OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
             if (now.isBefore(quiz.getStartTime())) {
                 throw new BadRequestException("Quiz has not started yet");
@@ -130,14 +132,22 @@ public class QuizServiceImpl implements QuizService {
             }
         }
 
-        QuizAttempt attempt=new QuizAttempt();
+        QuizAttempt attempt = new QuizAttempt();
+
         attempt.setQuiz(quiz);
-        attempt.setUser(userRepository.getReferenceById(Objects.requireNonNull(SecurityUtil.getCurrentUserId())));
+        attempt.setUser(userRepository.getReferenceById(
+                Objects.requireNonNull(SecurityUtil.getCurrentUserId())
+        ));
+
+// 🔥 ADD THIS LINE (MOST IMPORTANT)
+        attempt.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
         attempt.setStatus(ResultStatus.FAIL);
-        QuizAttempt setrtAttempt=quizAttemptRepository.save(attempt);
+
+        QuizAttempt savedAttempt = quizAttemptRepository.save(attempt);
 
         QuizResponseWithQuestionsDTO quizResponseWithQuestionsDTO=QuizMapper.toWithQuestions(quiz);
-        quizResponseWithQuestionsDTO.setAttemptId(setrtAttempt.getId());
+        quizResponseWithQuestionsDTO.setAttemptId(savedAttempt.getId());
         return quizResponseWithQuestionsDTO;
     }
 

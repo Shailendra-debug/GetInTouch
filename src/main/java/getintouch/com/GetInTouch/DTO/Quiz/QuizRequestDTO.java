@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Getter
@@ -35,8 +36,9 @@ public class QuizRequestDTO {
     private int passingMarks;
 
     /* ---------- SCHEDULE ---------- */
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private OffsetDateTime startTime;
+    private OffsetDateTime endTime;
+
 
 
     /* ---------- QUESTIONS ---------- */

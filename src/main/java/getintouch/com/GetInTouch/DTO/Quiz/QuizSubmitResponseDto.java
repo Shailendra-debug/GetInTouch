@@ -3,6 +3,8 @@ package getintouch.com.GetInTouch.DTO.Quiz;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Getter
@@ -24,8 +26,8 @@ public class QuizSubmitResponseDto {
 
     private String status;
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime endTime;
 
     private List<QuestionResultDto> results;
 }

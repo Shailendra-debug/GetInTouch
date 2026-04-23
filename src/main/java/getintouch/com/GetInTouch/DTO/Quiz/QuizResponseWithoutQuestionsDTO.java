@@ -5,6 +5,8 @@ import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -29,8 +31,8 @@ public class QuizResponseWithoutQuestionsDTO {
     private int passingMarks;
 
     /* ---------- SCHEDULE ---------- */
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private ZonedDateTime startTime;
+    private     ZonedDateTime endTime;
 
     /* ---------- AUDIT ---------- */
     private LocalDateTime createdAt;

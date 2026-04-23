@@ -9,6 +9,7 @@ import getintouch.com.GetInTouch.DTO.Quiz.QuizResponseWithoutQuestionsDTO;
 import getintouch.com.GetInTouch.Entity.Question.Question;
 import getintouch.com.GetInTouch.Entity.Quiz.Quiz;
 
+import java.time.ZoneId;
 import java.util.List;
 
 public class QuizMapper {
@@ -36,8 +37,14 @@ public class QuizMapper {
                 )
                 .passingMarks(quiz.getPassMarks())
                 .totalMarks(quiz.getTotalMarks())
-                .startTime(quiz.getStartTime())
-                .endTime(quiz.getEndTime())
+                .startTime(
+                        quiz.getStartTime()
+                                .atZoneSameInstant(ZoneId.of("Asia/Kolkata"))
+                )
+                .endTime(
+                        quiz.getEndTime()
+                                .atZoneSameInstant(ZoneId.of("Asia/Kolkata"))
+                )
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
                 .build();
