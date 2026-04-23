@@ -14,6 +14,8 @@ import java.util.List;
 
 public class QuizMapper {
 
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
+
     private QuizMapper() {
         // utility class
     }
@@ -38,12 +40,14 @@ public class QuizMapper {
                 .passingMarks(quiz.getPassMarks())
                 .totalMarks(quiz.getTotalMarks())
                 .startTime(
-                        quiz.getStartTime()
-                                .atZoneSameInstant(ZoneId.of("Asia/Kolkata"))
+                        quiz.getStartTime() != null
+                                ? quiz.getStartTime().atZoneSameInstant(IST)
+                                : null
                 )
                 .endTime(
-                        quiz.getEndTime()
-                                .atZoneSameInstant(ZoneId.of("Asia/Kolkata"))
+                        quiz.getEndTime() != null
+                                ? quiz.getEndTime().atZoneSameInstant(IST)
+                                : null
                 )
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
