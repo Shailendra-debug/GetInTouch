@@ -85,7 +85,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 correct++;
             }
 
-            // ✅ FIXED (removed correctIndexes duplication)
+
             QuizAttemptAnswer answer =
                     QuizAttemptAnswer.builder()
                             .attempt(attempt)

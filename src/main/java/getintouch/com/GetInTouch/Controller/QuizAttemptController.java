@@ -10,13 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.ap.shaded.freemarker.ext.beans._BeansAPI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Tag(name = "Quiz Attempt APIs", description = "Submit quiz and view results")
 @RestController
@@ -76,3 +76,11 @@ public class QuizAttemptController {
         return ResponseEntity.ok(list);
     }
 }
+
+class ListNode {
+      int val;
+      ListNode next;
+      ListNode() {}
+      ListNode(int val) { this.val = val; }
+      ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+  }

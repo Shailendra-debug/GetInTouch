@@ -48,6 +48,7 @@ public class QuizAttemptMapper {
                 // ✅ Added (VERY IMPORTANT)
                 .question(answer.getQuestion().getQuestion())
                 .options(answer.getQuestion().getOptions())
+                .explanation(answer.getQuestion().getExplanation())
 
                 .selectedIndexes(
                         answer.getSelectedIndexes() != null

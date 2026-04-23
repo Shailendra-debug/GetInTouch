@@ -16,6 +16,8 @@ public class QuestionResultDto {
     private List<Integer> selectedIndexes;
     private List<Integer> correctIndexes;
 
+    private String explanation;
+
     private boolean correct;
     private int marksObtained;
 }
