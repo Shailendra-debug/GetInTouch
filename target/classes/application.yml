@@ -23,17 +23,18 @@ spring:
 
 
   datasource:
-    url: jdbc:postgresql://db.plnpcqiziipmhaghtleh.supabase.co:5432/postgres?sslmode=require
-    username: postgres.plnpcqiziipmhaghtleh
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://shuttle.proxy.rlwy.net:57167/railway?sslmode=require
+    username: postgres
+    password: ZiWrCXQRexlMQIRrWvEqVkxvNjxOHzSw
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 3
+      connection-timeout: 30000
 
   jpa:
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
   security:
