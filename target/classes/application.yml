@@ -24,7 +24,7 @@ spring:
 
   datasource:
     url: jdbc:postgresql://db.plnpcqiziipmhaghtleh.supabase.co:5432/postgres?sslmode=require
-    username: postgres
+    username: postgres.plnpcqiziipmhaghtleh
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
