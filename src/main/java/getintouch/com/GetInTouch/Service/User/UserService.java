@@ -25,5 +25,8 @@ public interface UserService {
     @PreAuthorize("hasRole('ADMIN')")
     void makeAdmin(Long userId);
 
+    @PreAuthorize("hasRole('ADMIN')")
+    void removeAdmin(Long userId);
+
     @Nullable UserResponseDto RegisterVerifyOtpSaveUser(@Valid RegisterVerifyOtpRequestDto request);
 }

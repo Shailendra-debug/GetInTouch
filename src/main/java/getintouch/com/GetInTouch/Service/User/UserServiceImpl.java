@@ -144,6 +144,18 @@ public class UserServiceImpl implements UserService {
         user.setRole(Role.ADMIN);
         userRepository.save(user);
     }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public void removeAdmin(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRole(Role.USER);
+        userRepository.save(user);
+    }
+
     public boolean sendRegisterOtp(String email) {
 
         // ✅ Check if email already exists

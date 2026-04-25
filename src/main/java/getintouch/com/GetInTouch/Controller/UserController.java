@@ -104,4 +104,15 @@ public class UserController {
         userService.makeAdmin(id);
         return ResponseEntity.ok("User promoted to ADMIN");
     }
+
+    @Operation(summary = "Promote to Admin", description = "Promote a user to ADMIN role")
+    @ApiResponse(responseCode = "200", description = "User promoted successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
+    @PutMapping("/{id}/role/user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> removeAdmin(@PathVariable Long id) {
+
+        userService.makeAdmin(id);
+        return ResponseEntity.ok("User promoted to ADMIN");
+    }
 }

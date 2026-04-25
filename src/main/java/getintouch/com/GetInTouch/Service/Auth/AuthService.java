@@ -49,6 +49,8 @@ public class AuthService {
             throw new UnauthorizedException("Invalid credentials");
         }
 
+        if(!user.getEnabled()) throw new BadRequestException("User will be Disabled By Admin");
+
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
