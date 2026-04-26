@@ -25,7 +25,6 @@ import java.util.List;
 public class SliderController {
 
     private final SliderService sliderService;
-    private final FileUploadService fileUploadService;
 
     /* =====================================================
        GET ACTIVE SLIDERS (PUBLIC)
