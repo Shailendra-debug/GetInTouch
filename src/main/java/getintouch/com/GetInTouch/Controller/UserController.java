@@ -113,6 +113,6 @@ public class UserController {
     public ResponseEntity<String> removeAdmin(@PathVariable Long id) {
 
         userService.makeAdmin(id);
-        return ResponseEntity.ok("User promoted to ADMIN");
+        return ResponseEntity.ok("ADMIN promoted to User");
     }
 }
