@@ -105,7 +105,7 @@ public class UserController {
         return ResponseEntity.ok("User promoted to ADMIN");
     }
 
-    @Operation(summary = "Promote to Admin", description = "Promote a user to ADMIN role")
+    @Operation(summary = "Promote to User", description = "Promote a user to ADMIN role")
     @ApiResponse(responseCode = "200", description = "User promoted successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
     @PutMapping("/{id}/role/user")
