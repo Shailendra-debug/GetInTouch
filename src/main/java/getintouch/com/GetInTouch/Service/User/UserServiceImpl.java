@@ -89,6 +89,16 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toDto(save_user);
     }
 
+    @Override
+    public boolean isAdmin(String email) {
+
+        boolean isAdmin = userRepository.findByEmail(email)
+                .map(user -> user.getRole() == Role.ADMIN)
+                .orElse(false);
+
+        return  isAdmin;
+    }
+
     /* ---------- READ ---------- */
 
     @Override
