@@ -34,25 +34,30 @@ public class AuthController {
     private final CookieService cookieService;
 
 
-    @Operation(summary = "Admin Login", description = "Authenticate user and return JWT tokens")
+    @Operation(summary = "Admin Login", description = "Authenticate admin and return JWT tokens")
     @ApiResponse(responseCode = "200", description = "Login successful")
     @PostMapping("/login/admin")
     public ResponseEntity<LoginResponseDto> loginAdmin(
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response,
             HttpServletRequest httpRequest) {
-
-        if (!userService.isAdmin(request.getEmail())) throw new BadRequestException("Your are a Not Admin");
-
-        LoginResponseDto dto = authService.login(request);
-
-        boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
-
-        if (dto.getRefreshToken() != null && isWeb) {
-            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
-            dto.setRefreshToken(dto.getRefreshToken()); // 🔥 hide for web
+    
+        if (!userService.isAdmin(request.getEmail())) {
+            throw new BadRequestException("You are not an admin");
         }
-
+    
+        LoginResponseDto dto = authService.login(request);
+    
+        boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
+    
+        if (dto.getRefreshToken() != null && isWeb) {
+    
+            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
+    
+            // Hide refresh token from response body for web
+            dto.setRefreshToken(null);
+        }
+    
         return ResponseEntity.ok(dto);
     }
 
