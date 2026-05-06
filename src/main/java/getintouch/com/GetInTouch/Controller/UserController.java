@@ -112,7 +112,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> removeAdmin(@PathVariable Long id) {
 
-        userService.makeAdmin(id);
+        userService.removeAdmin(id);
         return ResponseEntity.ok("ADMIN promoted to User");
     }
 }
