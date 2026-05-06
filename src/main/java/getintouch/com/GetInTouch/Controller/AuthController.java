@@ -43,7 +43,8 @@ public class AuthController {
             HttpServletRequest httpRequest) {
     
         if (!userService.isAdmin(request.getEmail())) {
-            throw new BadRequestException("You are not an admin");
+            throw new RuntimeException("You are not an admin");
+        
         }
     
         LoginResponseDto dto = authService.login(request);
