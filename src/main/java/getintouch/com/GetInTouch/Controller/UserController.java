@@ -41,7 +41,7 @@ public class UserController {
 
     @Operation(summary = "Register User", description = "Register a new user By Admin")
     @ApiResponse(responseCode = "201", description = "User registered successfully")
-    @PostMapping("registerByAdmin")
+    @PostMapping("/registerByAdmin")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<UserResponseDto> registerByAdmin(
             @Valid @RequestBody UserRegisterRequestDto request) {
