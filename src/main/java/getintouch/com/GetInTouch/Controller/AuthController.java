@@ -54,6 +54,7 @@ public class AuthController {
         if (dto.getRefreshToken() != null && isWeb) {
     
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
+            dto.setRefreshToken(dto.getRefreshToken()); 
     
             // Hide refresh token from response body for web
             dto.setRefreshToken(null);
