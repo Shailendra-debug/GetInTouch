@@ -82,21 +82,9 @@ public class UserServiceImpl implements UserService {
         }
 
         User new_user=UserMapper.toEntity(request);
-        new_user.setRole(Role.USER);
-        new_user.setPassword(passwordEncoder.encode(request.getPassword()));
         User save_user=userRepository.save(new_user);
 
         return UserMapper.toDto(save_user);
-    }
-
-    @Override
-    public boolean isAdmin(String email) {
-
-        boolean isAdmin = userRepository.findByEmail(email)
-                .map(user -> user.getRole() == Role.ADMIN)
-                .orElse(false);
-
-        return  isAdmin;
     }
 
     /* ---------- READ ---------- */
@@ -180,10 +168,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (user.getId()==1) throw new BadRequestException("Root Admin Can Not Be Change");
-
         user.setRole(Role.USER);
-        user.setEnabled(true);
         userRepository.save(user);
     }
 
