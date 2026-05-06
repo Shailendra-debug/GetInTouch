@@ -13,7 +13,6 @@ public interface UserService {
     @PreAuthorize("hasRole('ADMIN')")
     UserResponseDto registerByAdmin(UserRegisterRequestDto request);
 
-    Map<String, Boolean> isAdmin(String email);
 
     @PreAuthorize("hasRole('ADMIN')")
     List<UserResponseDto> getAll();
