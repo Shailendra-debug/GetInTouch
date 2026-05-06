@@ -173,6 +173,7 @@ public class UserServiceImpl implements UserService {
         if (user.getId()==1) throw new BadRequestException("Root Admin Can Not Be Change");
 
         user.setRole(Role.USER);
+        user.setEnabled(true);
         userRepository.save(user);
     }
 
