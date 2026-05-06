@@ -71,6 +71,22 @@ public class UserServiceImpl implements UserService {
         return new RegisterSendOtpResponseDto(false);
     }
 
+    @Override
+    public UserResponseDto registerByAdmin(UserRegisterRequestDto request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already exists");
+        }
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BadRequestException("Username already exists");
+        }
+
+        User new_user=UserMapper.toEntity(request);
+        User save_user=userRepository.save(new_user);
+
+        return UserMapper.toDto(save_user);
+    }
+
     /* ---------- READ ---------- */
 
     @Override

@@ -39,6 +39,18 @@ public class UserController {
                 .body(userService.register(request));
     }
 
+    @Operation(summary = "Register User", description = "Register a new user By Admin")
+    @ApiResponse(responseCode = "201", description = "User registered successfully")
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<UserResponseDto> registerByAdmin(
+            @Valid @RequestBody UserRegisterRequestDto request) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.registerByAdmin(request));
+    }
+
     /* =====================================================
        GET USER BY ID
        ===================================================== */

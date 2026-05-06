@@ -11,6 +11,9 @@ public interface UserService {
     RegisterSendOtpResponseDto register(UserRegisterRequestDto request);
 
     @PreAuthorize("hasRole('ADMIN')")
+    UserResponseDto registerByAdmin(UserRegisterRequestDto request);
+
+    @PreAuthorize("hasRole('ADMIN')")
     List<UserResponseDto> getAll();
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
