@@ -56,8 +56,6 @@ public class AuthController {
             cookieService.attachRefreshCookie(response, dto.getRefreshToken());
             dto.setRefreshToken(dto.getRefreshToken()); 
     
-            // Hide refresh token from response body for web
-            dto.setRefreshToken(null);
         }
     
         return ResponseEntity.ok(dto);
