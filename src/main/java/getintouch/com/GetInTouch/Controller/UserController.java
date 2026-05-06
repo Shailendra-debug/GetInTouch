@@ -39,6 +39,17 @@ public class UserController {
                 .body(userService.register(request));
     }
 
+    @Operation(summary = "Register User", description = "Register a new user By Admin")
+    @ApiResponse(responseCode = "201", description = "User registered successfully")
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<UserResponseDto> registerByAdmin(
+            @Valid @RequestBody UserRegisterRequestDto request) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.registerByAdmin(request));
+    }
 
     /* =====================================================
        GET USER BY ID
@@ -55,6 +66,8 @@ public class UserController {
     /* =====================================================
        GET ALL USERS (ADMIN)
        ===================================================== */
+
+
     @Operation(summary = "Get All Users", description = "Fetch all users (ADMIN only)")
     @ApiResponse(responseCode = "200", description = "Users fetched successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
