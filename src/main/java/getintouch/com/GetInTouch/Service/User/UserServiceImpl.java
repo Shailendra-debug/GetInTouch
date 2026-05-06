@@ -169,6 +169,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (user.getId()==1) throw new BadRequestException("Root Admin Can Not Be Change");
+
         user.setRole(Role.USER);
         userRepository.save(user);
     }
