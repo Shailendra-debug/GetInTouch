@@ -84,7 +84,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "User updated successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN','USER')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<UserResponseDto> update(
             @PathVariable Long id,
             @Valid @RequestBody UserUpdateRequestDto request) {
