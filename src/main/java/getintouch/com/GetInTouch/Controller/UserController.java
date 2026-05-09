@@ -80,11 +80,11 @@ public class UserController {
     /* =====================================================
        UPDATE USER
        ===================================================== */
-    @Operation(summary = "Update User", description = "Update user profile (Self or ADMIN)")
+    @Operation(summary = "Update User", description = "Update user profile ADMIN USER)")
     @ApiResponse(responseCode = "200", description = "User updated successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    @PreAuthorize("hasRole('ADMIN','USER')")
     public ResponseEntity<UserResponseDto> update(
             @PathVariable Long id,
             @Valid @RequestBody UserUpdateRequestDto request) {
