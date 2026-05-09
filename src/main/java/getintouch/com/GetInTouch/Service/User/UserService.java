@@ -21,7 +21,7 @@ public interface UserService {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     UserResponseDto getById(Long id);
 
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
+    //@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
     UserResponseDto update(Long id, UserUpdateRequestDto request);
 
     @PreAuthorize("hasRole('ADMIN')")
