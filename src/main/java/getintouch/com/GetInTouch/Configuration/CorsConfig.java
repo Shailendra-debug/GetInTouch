@@ -21,8 +21,8 @@ public class CorsConfig implements WebMvcConfigurer {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
-                "zippy-hummingbird-7f2028.netlify.app",
-                "getintouch24.netlify.app"
+                "https://zippy-hummingbird-7f2028.netlify.app",
+                "https://getintouch24.netlify.app"
         ));
 
         config.setAllowedMethods(List.of(
