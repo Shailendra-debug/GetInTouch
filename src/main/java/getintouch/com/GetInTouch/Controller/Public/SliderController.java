@@ -34,6 +34,7 @@ public class SliderController {
         return ResponseEntity.ok(sliderService.getActiveSliders());
     }
 
+
     /* =====================================================
        GET ALL SLIDERS (ADMIN)
        ===================================================== */

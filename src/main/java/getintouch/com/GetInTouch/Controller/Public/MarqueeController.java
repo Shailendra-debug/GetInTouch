@@ -30,6 +30,11 @@ public class MarqueeController {
         return ResponseEntity.ok(marqueeService.getActiveMarquee());
     }
 
+    @GetMapping("/health")
+    public String health() {
+        return "Application is running";
+    }
+
     /* ================= ADMIN ================= */
 
     @Operation(
