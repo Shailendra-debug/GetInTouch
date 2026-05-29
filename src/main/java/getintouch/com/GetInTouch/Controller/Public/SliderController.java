@@ -1,9 +1,7 @@
-package getintouch.com.GetInTouch.Controller;
+package getintouch.com.GetInTouch.Controller.Public;
 
 import getintouch.com.GetInTouch.DTO.HomePage.SliderRequest;
 import getintouch.com.GetInTouch.DTO.HomePage.SliderResponse;
-import getintouch.com.GetInTouch.DTO.HomePage.URL_Dtu;
-import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.HomePage.SliderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

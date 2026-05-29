@@ -1,4 +1,4 @@
-package getintouch.com.GetInTouch.Controller;
+package getintouch.com.GetInTouch.Controller.Public;
 
 import getintouch.com.GetInTouch.DTO.HomePage.MarqueeRequest;
 import getintouch.com.GetInTouch.DTO.HomePage.MarqueeResponse;
