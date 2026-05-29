@@ -13,15 +13,13 @@ public interface UserService {
     @PreAuthorize("hasRole('ADMIN')")
     UserResponseDto registerByAdmin(UserRegisterRequestDto request);
 
-    boolean isAdmin(String email);
-
     @PreAuthorize("hasRole('ADMIN')")
     List<UserResponseDto> getAll();
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     UserResponseDto getById(Long id);
 
-    //@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
     UserResponseDto update(Long id, UserUpdateRequestDto request);
 
     @PreAuthorize("hasRole('ADMIN')")

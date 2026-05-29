@@ -33,34 +33,6 @@ public class AuthController {
     private final UserService userService;
     private final CookieService cookieService;
 
-
-    @Operation(summary = "Admin Login", description = "Authenticate admin and return JWT tokens")
-    @ApiResponse(responseCode = "200", description = "Login successful")
-    @PostMapping("/login/admin")
-    public ResponseEntity<LoginResponseDto> loginAdmin(
-            @RequestBody LoginRequestDTO request,
-            HttpServletResponse response,
-            HttpServletRequest httpRequest) {
-    
-        if (!userService.isAdmin(request.getEmail())) {
-            throw new RuntimeException("You are not an admin");
-        
-        }
-    
-        LoginResponseDto dto = authService.login(request);
-    
-        boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
-    
-        if (dto.getRefreshToken() != null && isWeb) {
-    
-            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
-            dto.setRefreshToken(dto.getRefreshToken()); 
-    
-        }
-    
-        return ResponseEntity.ok(dto);
-    }
-
     @Operation(summary = "User Login", description = "Authenticate user and return JWT tokens")
     @ApiResponse(responseCode = "200", description = "Login successful")
     @PostMapping("/login")
