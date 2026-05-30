@@ -51,6 +51,35 @@ public class AuthService {
 
         if(!user.getEnabled()) throw new BadRequestException("User will be Disabled By Admin");
 
+        if (user.getRole()!=Role.USER)throw new BadRequestException("You Are Not A User");
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        saveRefreshToken(user, refreshToken);
+
+        return LoginResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    public LoginResponseDto loginForAdmin(LoginRequestDTO request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UnauthorizedException("Invalid credentials");
+        }
+
+        if(!user.getEnabled()) throw new BadRequestException("User will be Disabled By Admin");
+
+        if (user.getRole()!=Role.ADMIN)throw new BadRequestException("You Are Not A Admin");
+
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 

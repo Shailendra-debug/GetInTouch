@@ -33,23 +33,27 @@ public class AuthController {
     private final UserService userService;
     private final CookieService cookieService;
 
-    @Operation(summary = "User Login", description = "Authenticate user and return JWT tokens")
+    @Operation(summary = "User Login")
     @ApiResponse(responseCode = "200", description = "Login successful")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
-            @RequestBody LoginRequestDTO request,
-            HttpServletResponse response,
-            HttpServletRequest httpRequest) {
+            @RequestBody LoginRequestDTO request) {
 
         LoginResponseDto dto = authService.login(request);
 
-        boolean isWeb = httpRequest.getHeader("X-Client-Type") == null;
 
-        if (dto.getRefreshToken() != null && isWeb) {
-            //cookieService.attachAccessCookie(response, dto.getAccessToken());
-            cookieService.attachRefreshCookie(response, dto.getRefreshToken());
-            dto.setRefreshToken(dto.getRefreshToken()); // 🔥 hide for web
-        }
+        return ResponseEntity.ok(dto);
+    }
+
+
+
+    @Operation(summary = "Admin Login")
+    @ApiResponse(responseCode = "200", description = "Admin login successful")
+    @PostMapping("/login/admin")
+    public ResponseEntity<LoginResponseDto> loginForAdmin(
+            @RequestBody LoginRequestDTO request) {
+
+        LoginResponseDto dto = authService.loginForAdmin(request);
 
         return ResponseEntity.ok(dto);
     }
