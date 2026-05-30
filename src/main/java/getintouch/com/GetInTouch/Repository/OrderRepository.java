@@ -35,6 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     JOIN o.note n
     WHERE o.userId = :userId
     AND o.status = 'APPROVED'
+    AND o.note.active = true
 """)
     List<Notes> findAllApprovedNotes(Long userId);
 

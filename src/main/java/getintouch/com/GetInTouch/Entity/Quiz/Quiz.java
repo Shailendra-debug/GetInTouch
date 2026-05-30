@@ -62,6 +62,8 @@ public class Quiz {
     )
     private List<Question> questions;
 
+    private Boolean showResult=true;
+
     @PrePersist
     @PreUpdate
     private void beforeSave() {
@@ -85,4 +87,6 @@ public class Quiz {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+
 }

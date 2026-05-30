@@ -15,7 +15,7 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private final long ACCESS_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
+    private final long ACCESS_EXPIRATION = 1000 * 60 * 60 * 24* 7; // 1 day
     private final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
     @Value("${jwt.secret}")

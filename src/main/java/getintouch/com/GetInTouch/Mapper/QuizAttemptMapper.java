@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneId;
 import java.util.List;
 @Component
-public class QuizAttemptMapper {
+public class
+QuizAttemptMapper {
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
     /* ---------- ENTITY → RESPONSE DTO ---------- */
@@ -45,6 +46,7 @@ public class QuizAttemptMapper {
                                 : null
                 )
                 .results(results)
+                .showResult(attempt.getQuiz().getShowResult())
                 .build();
     }
 

@@ -2,10 +2,7 @@ package getintouch.com.GetInTouch.Service.Quiz;
 
 import getintouch.com.GetInTouch.DTO.Quiz.*;
 import getintouch.com.GetInTouch.Entity.Question.Question;
-import getintouch.com.GetInTouch.Entity.Quiz.QuizAttempt;
-import getintouch.com.GetInTouch.Entity.Quiz.QuizAttemptAnswer;
-import getintouch.com.GetInTouch.Entity.Quiz.QuizType;
-import getintouch.com.GetInTouch.Entity.Quiz.ResultStatus;
+import getintouch.com.GetInTouch.Entity.Quiz.*;
 import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
@@ -123,7 +120,22 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
 
         attemptRepository.save(attempt);
 
-        return mapper.toResponse(attempt, results);
+        if (attempt.getQuiz().getShowResult()) {
+            QuizSubmitResponseDto response =
+                    mapper.toResponse(attempt, results);
+
+            response.setShowResult(true);
+            return response;
+        }
+
+        QuizSubmitResponseDto response = new QuizSubmitResponseDto();
+        response.setAttemptId(attempt.getId());
+        response.setQuizId(attempt.getQuiz().getId());
+        response.setUserId(attempt.getUser().getId());
+        response.setShowResult(false);
+        response.setMessage("Quiz submitted successfully. Result will be available later.");
+
+        return response;
     }
 
     /* ================= GET BY ATTEMPT ID ================= */
@@ -136,14 +148,17 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Attempt not found"));
 
-        // ✅ FIXED (JOIN FETCH method)
-        List<QuestionResultDto> results =
-                answerRepository.findByAttemptIdWithQuestion(attemptId)
-                        .stream()
-                        .map(mapper::toQuestionResult)
-                        .toList();
+        if (attempt.getQuiz().getShowResult()) {
 
-        return mapper.toResponse(attempt, results);
+            List<QuestionResultDto> results =
+                    answerRepository.findByAttemptIdWithQuestion(attemptId)
+                            .stream()
+                            .map(mapper::toQuestionResult)
+                            .toList();
+
+            return mapper.toResponse(attempt, results);
+        }
+        return QuizSubmitResponseDto.builder().message("Result will be available later").showResult(false).build();
     }
 
     /* ================= GET ALL BY USER ================= */

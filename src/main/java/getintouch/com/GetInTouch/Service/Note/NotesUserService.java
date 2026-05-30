@@ -38,7 +38,7 @@ public class NotesUserService {
 
         List<Long> approvedIds = orderRepository.findApprovedNoteIds(userId);
 
-        return notesRepository.findAll()
+        return notesRepository.findLatestActiveNotes()
                 .stream()
                 .map(note -> NotesUserResponse.builder()
                         .id(note.getId())

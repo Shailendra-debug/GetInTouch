@@ -5,9 +5,14 @@ import getintouch.com.GetInTouch.DTO.Note.NotesResponseDto;
 import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.Note.NotesService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,62 +22,123 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/notes")
 @RequiredArgsConstructor
+@Tag(name = "Admin Notes", description = "Admin APIs for Notes Management")
+@Validated
 public class NotesAdminController {
 
     private final NotesService service;
     private final FileUploadService fileUploadService;
 
-    @Operation(summary = "Create Note")
+    @Operation(
+            summary = "Create Note",
+            description = "Create a new note"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<NotesResponseDto> create(
             @Valid @RequestBody NotesRequestDto dto) {
-        return ResponseEntity.ok(service.create(dto));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(dto));
     }
 
-    @Operation(summary = "Update Note")
+    @Operation(
+            summary = "Update Note",
+            description = "Update existing note"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<NotesResponseDto> update(
             @PathVariable Long id,
             @Valid @RequestBody NotesRequestDto dto) {
+
         return ResponseEntity.ok(service.update(id, dto));
     }
 
-    @Operation(summary = "Get Note by ID")
+    @Operation(
+            summary = "Get Note By ID",
+            description = "Fetch note details"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<NotesResponseDto> get(@PathVariable Long id) {
+    public ResponseEntity<NotesResponseDto> get(
+            @PathVariable Long id) {
+
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @Operation(summary = "Get All Notes")
+    @Operation(
+            summary = "Get All Notes",
+            description = "Fetch all notes"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<NotesResponseDto>> getAll() {
+
         return ResponseEntity.ok(service.getAll());
     }
 
-    @Operation(summary = "Delete Note")
+    @Operation(
+            summary = "Delete Note",
+            description = "Delete note permanently"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id) {
+
         service.delete(id);
-        return ResponseEntity.ok("Deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 
-    // 📤 Upload Thumbnail / PDF / QR
-    @Operation(summary = "Upload c (Cloudflare R2)")
-    @PostMapping("/upload_note")
-    public ResponseEntity<String> upload_Note(@RequestParam MultipartFile file) {
-        return ResponseEntity.ok(fileUploadService.uploadFile(file,"notes"));
+    @Operation(
+            summary = "Upload Note PDF",
+            description = "Upload PDF file to Cloudflare R2"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(
+            value = "/upload_note",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> uploadNote(
+            @RequestParam("file") MultipartFile file) {
+
+        return ResponseEntity.ok(
+                fileUploadService.uploadFile(file, "notes")
+        );
     }
 
-    @Operation(summary = "Upload Thumbnail (Cloudflare R2)")
-    @PostMapping("/upload_thumbnail")
-    public ResponseEntity<String> upload_Thumbnail(@RequestParam MultipartFile file) {
-        return ResponseEntity.ok(fileUploadService.uploadFile(file,"thumbnails"));
+    @Operation(
+            summary = "Upload Thumbnail",
+            description = "Upload thumbnail image to Cloudflare R2"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(
+            value = "/upload_thumbnail",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> uploadThumbnail(
+            @RequestParam("file") MultipartFile file) {
+
+        return ResponseEntity.ok(
+                fileUploadService.uploadFile(file, "thumbnails")
+        );
     }
 
-    @Operation(summary = "Upload QR (Cloudflare R2)")
-    @PostMapping("/upload_qr")
-    public ResponseEntity<String> upload_QR(@RequestParam MultipartFile file) {
-        return ResponseEntity.ok(fileUploadService.uploadFile(file,"paymentQr"));
-    }
+    @Operation(
+            summary = "Upload Payment QR",
+            description = "Upload payment QR image to Cloudflare R2"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(
+            value = "/upload_qr",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> uploadQr(
+            @RequestParam("file") MultipartFile file) {
 
+        return ResponseEntity.ok(
+                fileUploadService.uploadFile(file, "paymentQr")
+        );
+    }
 }

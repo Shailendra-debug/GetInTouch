@@ -1,15 +1,15 @@
 package getintouch.com.GetInTouch.DTO.Quiz;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.util.List;
 
-@Getter
-@Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class QuizSubmitResponseDto {
+@Data
+@AllArgsConstructor
+@Builder
+public class QuizSubmitResponseWithoutQuestionsDTO {
 
     private Long attemptId;
     private Long quizId;
@@ -28,10 +28,4 @@ public class QuizSubmitResponseDto {
 
     private ZonedDateTime startTime;
     private ZonedDateTime endTime;
-
-    private List<QuestionResultDto> results;
-
-    private boolean showResult;
-    private String message;
 }
-
