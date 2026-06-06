@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/quiz/public")
+@RequestMapping("/api/public/quiz")
 @AllArgsConstructor
 @Tag(name = "Public Quiz API", description = "Public APIs for active quizzes")
 public class PublicQuizController {

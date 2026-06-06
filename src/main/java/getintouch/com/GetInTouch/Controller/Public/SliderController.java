@@ -18,7 +18,7 @@ import java.util.List;
 
 @Tag(name = "Slider APIs", description = "Manage homepage sliders")
 @RestController
-@RequestMapping("/api/sliders")
+@RequestMapping("/api/public/sliders")
 @AllArgsConstructor
 public class SliderController {
 

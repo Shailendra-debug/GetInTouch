@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notes/public")
+@RequestMapping("/api/public/notes")
 @RequiredArgsConstructor
 @Tag(name = "Public Notes", description = "Public APIs for Notes")
 public class PublicNotesController {

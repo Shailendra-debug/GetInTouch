@@ -23,9 +23,7 @@ public class CourseServiceImpl implements CourseService {
     // ===================== ADMIN =====================
 
     @Override
-    public CourseResponseDTO createCourse(
-            CourseRequestDTO requestDTO
-    ) {
+    public CourseResponseDTO createCourse(CourseRequestDTO requestDTO) {
 
         if (courseRepository.existsByNameIgnoreCase(requestDTO.getName())) {
             throw new RuntimeException("Course already exists.");
