@@ -56,6 +56,7 @@ public class QuizServiceImpl implements QuizService {
                 .description(request.getDescription())
                 .timeLimit(request.getTimeLimit())
                 .active(request.isActive())
+                .showResult(request.getShowResult())
                 .type(request.getType())
                 .course(course)
                 .passMarks(request.getPassingMarks())
@@ -174,6 +175,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setDescription(request.getDescription());
         quiz.setTimeLimit(request.getTimeLimit());
         quiz.setActive(request.isActive());
+        quiz.setShowResult(request.getShowResult());
         quiz.setType(request.getType());
         quiz.setCourse(course);
         quiz.setPassMarks(request.getPassingMarks());

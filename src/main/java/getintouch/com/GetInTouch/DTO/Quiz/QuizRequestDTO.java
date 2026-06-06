@@ -25,6 +25,8 @@ public class QuizRequestDTO {
 
     private boolean active;
 
+    private Boolean showResult;
+
     @NotNull
     private QuizType type;
 

@@ -34,6 +34,7 @@ public class QuizMapper {
                 .description(quiz.getDescription())
                 .timeLimit(quiz.getTimeLimit())
                 .active(quiz.isActive())
+                .showResult(quiz.getShowResult())
                 .type(quiz.getType().name())
                 .course(mapCourse(quiz))
                 .totalQuestions(
@@ -74,6 +75,7 @@ public class QuizMapper {
                 .description(quiz.getDescription())
                 .timeLimit(quiz.getTimeLimit())
                 .active(quiz.isActive())
+                .showResult(quiz.getShowResult())
                 .type(quiz.getType().name())
                 .course(mapCourse(quiz))
                 .questions(quiz.getQuestions().stream().map(QuestionMapper::toQuizView).toList())
