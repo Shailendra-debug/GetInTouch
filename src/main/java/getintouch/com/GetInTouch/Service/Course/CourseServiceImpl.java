@@ -3,8 +3,6 @@ package getintouch.com.GetInTouch.Service.Course;
 import getintouch.com.GetInTouch.DTO.Course.CourseRequestDTO;
 import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
 import getintouch.com.GetInTouch.Entity.Quiz.Course;
-import getintouch.com.GetInTouch.Exception.BadRequestException;
-import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.CourseMapper;
 import getintouch.com.GetInTouch.Repository.CourseRepository;
 import jakarta.transaction.Transactional;
@@ -12,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -21,58 +20,126 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
 
-    @Override
-    public CourseResponseDTO createCourse(CourseRequestDTO request) {
+    // ===================== ADMIN =====================
 
-        if (courseRepository.existsByNameIgnoreCase(request.getName())) {
-            throw new BadRequestException("Course already exists");
+    @Override
+    public CourseResponseDTO createCourse(
+            CourseRequestDTO requestDTO
+    ) {
+
+        if (courseRepository.existsByNameIgnoreCase(requestDTO.getName())) {
+            throw new RuntimeException("Course already exists.");
         }
 
-        Course course = CourseMapper.toEntity(request);
-        return CourseMapper.toResponse(courseRepository.save(course));
+        if (courseRepository.existsByCourseNumber(requestDTO.getCourseNumber())) {
+            throw new RuntimeException("Course number already exists.");
+        }
+
+        Course course = CourseMapper.toEntity(requestDTO);
+
+        course = courseRepository.save(course);
+
+        return CourseMapper.toResponseDTO(course);
     }
 
     @Override
+    public CourseResponseDTO updateCourse(
+            Long id,
+            CourseRequestDTO requestDTO
+    ) {
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found."));
+
+        CourseMapper.updateEntity(course, requestDTO);
+
+        course = courseRepository.save(course);
+
+        return CourseMapper.toResponseDTO(course);
+    }
+
+    @Override
+    public void deleteCourse(Long id) {
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found."));
+
+        course.setActive(false);
+
+        courseRepository.save(course);
+    }
+
+    @Override
+    public CourseResponseDTO activateCourse(Long id) {
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found."));
+
+        course.setActive(true);
+
+        course = courseRepository.save(course);
+
+        return CourseMapper.toResponseDTO(course);
+    }
+
+    @Override
+    @Transactional()
     public List<CourseResponseDTO> getAllCourses() {
 
-        return courseRepository.findAll()
+        return courseRepository.findAllByOrderByCourseNumberAsc()
                 .stream()
-                .map(CourseMapper::toResponse)
-                .toList();
+                .map(CourseMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // ===================== USER =====================
+
+    @Override
+    @Transactional()
+    public List<CourseResponseDTO> getAllActiveCourses() {
+
+        return courseRepository.findByActiveTrueOrderByCourseNumberAsc()
+                .stream()
+                .map(CourseMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public CourseResponseDTO getCourseById(Long courseId) {
+    @Transactional()
+    public CourseResponseDTO getCourseById(Long id) {
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Course not found with id: " + courseId)
-                );
+        Course course = courseRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new RuntimeException("Course not found."));
 
-        return CourseMapper.toResponse(course);
+        return CourseMapper.toResponseDTO(course);
     }
 
     @Override
-    public CourseResponseDTO updateCourse(Long courseId, CourseRequestDTO request) {
+    @Transactional()
+    public CourseResponseDTO getCourseByCourseNumber(
+            Long courseNumber
+    ) {
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Course not found with id: " + courseId)
-                );
+        Course course = courseRepository
+                .findByCourseNumberAndActiveTrue(courseNumber)
+                .orElseThrow(() -> new RuntimeException("Course not found."));
 
-        course.setName(request.getName());
-        return CourseMapper.toResponse(courseRepository.save(course));
+        return CourseMapper.toResponseDTO(course);
     }
 
     @Override
-    public void deleteCourse(Long courseId) {
+    @Transactional()
+    public List<CourseResponseDTO> searchCourses(
+            String keyword
+    ) {
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Course not found with id: " + courseId)
-                );
-
-        courseRepository.delete(course);
+        return courseRepository.findByActiveTrueOrderByCourseNumberAsc()
+                .stream()
+                .filter(course ->
+                        course.getName().toLowerCase()
+                                .contains(keyword.toLowerCase()))
+                .map(CourseMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }
 

@@ -1,34 +1,33 @@
 package getintouch.com.GetInTouch.Entity.Quiz;
 
-import getintouch.com.GetInTouch.Entity.Question.Question;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "courses")
-public class Course {
+@Table(name = "chapters")
+public class Chapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String name;
+    @Column(nullable = false, length = 200)
+    private String title;
 
     @Column(nullable = false)
-    private Long courseNumber;
+    private Long chapterNumber;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String thumbnail;
@@ -40,13 +39,9 @@ public class Course {
 
     private LocalDateTime updatedAt;
 
-    @OneToMany(
-            mappedBy = "course",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @Builder.Default
-    private List<Paper> papers = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paper_id", nullable = false)
+    private Paper paper;
 
     @PrePersist
     public void onCreate() {

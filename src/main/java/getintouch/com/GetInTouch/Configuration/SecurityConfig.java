@@ -61,10 +61,7 @@ public class SecurityConfig {
                     ).permitAll()
 
                     // ✅ Public APIs
-                    .requestMatchers(HttpMethod.GET, "/api/sliders/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/marquee/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/quiz/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/notes/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
                     // ✅ CORS
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

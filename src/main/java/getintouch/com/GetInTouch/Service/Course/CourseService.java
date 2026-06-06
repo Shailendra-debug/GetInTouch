@@ -9,13 +9,34 @@ import java.util.List;
 
 public interface CourseService {
 
-    CourseResponseDTO createCourse(CourseRequestDTO request);
+    // ========== ADMIN ==========
+
+    CourseResponseDTO createCourse(
+            CourseRequestDTO requestDTO
+    );
+
+    CourseResponseDTO updateCourse(
+            Long id,
+            CourseRequestDTO requestDTO
+    );
+
+    void deleteCourse(Long id);
+
+    CourseResponseDTO activateCourse(Long id);
 
     List<CourseResponseDTO> getAllCourses();
 
-    CourseResponseDTO getCourseById(Long courseId);
+    // ========== USER ==========
 
-    CourseResponseDTO updateCourse(Long courseId, CourseRequestDTO request);
+    List<CourseResponseDTO> getAllActiveCourses();
 
-    void deleteCourse(Long courseId);
+    CourseResponseDTO getCourseById(Long id);
+
+    CourseResponseDTO getCourseByCourseNumber(
+            Long courseNumber
+    );
+
+    List<CourseResponseDTO> searchCourses(
+            String keyword
+    );
 }

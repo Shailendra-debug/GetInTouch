@@ -20,6 +20,7 @@ public class QuizResponseWithoutQuestionsDTO {
     private String description;
     private int timeLimit;
     private boolean active;
+    private Boolean showResult=true;
     private String type;
 
     /* ---------- COURSE ---------- */

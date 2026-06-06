@@ -19,6 +19,7 @@ public class QuizSubmitResponseWithoutQuestionsDTO {
     private int attemptedQuestions;
     private int correctAnswers;
     private int wrongAnswers;
+    private Boolean showResult=true;
 
     private int score;
     private int totalMarks;

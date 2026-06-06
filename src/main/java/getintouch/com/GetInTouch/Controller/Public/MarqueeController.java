@@ -12,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 @Tag(name = "Marquee APIs", description = "APIs for managing homepage marquee")
 @RestController
-@RequestMapping("/api/marquee")
+@RequestMapping("/api/public/marquee")
 @AllArgsConstructor
 public class MarqueeController {
 

@@ -1,27 +1,33 @@
-package getintouch.com.GetInTouch.DTO.Course;
+package getintouch.com.GetInTouch.DTO.Paper;
 
 import jakarta.persistence.Column;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseResponseDTO {
+public class PaperResponseDTO {
 
     private Long id;
 
     private String name;
 
     @Column(nullable = false)
-    private Long courseNumber;
+    private Long paperNumber;
 
     private String description;
 
     private String thumbnail;
+
+    private Long courseId;
+
+    private String courseName;
 
     private Boolean active;
 
