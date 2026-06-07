@@ -2,6 +2,7 @@ package getintouch.com.GetInTouch.Controller;
 
 import getintouch.com.GetInTouch.DTO.Paper.PaperRequestDTO;
 import getintouch.com.GetInTouch.DTO.Paper.PaperResponseDTO;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.Paper.PaperService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -25,6 +28,8 @@ import java.util.List;
 public class PaperController {
 
     private final PaperService paperService;
+
+    private final FileUploadService uploadService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -117,5 +122,16 @@ public class PaperController {
     @Operation(summary = "Search active papers by keyword name")
     public ResponseEntity<List<PaperResponseDTO>> searchPapers(@RequestParam(required = false) String keyword) {
         return ResponseEntity.ok(paperService.searchPapers(keyword));
+    }
+
+    @Operation(summary = "Create Thumbnail", description = "Create a new Thumbnail For Papers (ADMIN only)")
+    @ApiResponse(responseCode = "201", description = "Thumbnail created successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
+    @PostMapping("thumbnail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createSlider(
+            @RequestParam MultipartFile file) {
+        String url=uploadService.uploadFile(file,"paper");
+        return ResponseEntity.ok(new HashMap<>().put("URL",url));
     }
 }

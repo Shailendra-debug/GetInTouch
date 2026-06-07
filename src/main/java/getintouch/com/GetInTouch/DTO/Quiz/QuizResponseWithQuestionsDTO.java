@@ -22,6 +22,9 @@ public class QuizResponseWithQuestionsDTO {
     private int timeLimit;
     private boolean active;
     private Boolean showResult=true;
+
+
+    private String thumbnail;
     private String type;
 
     /* ---------- COURSE ---------- */

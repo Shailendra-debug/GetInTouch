@@ -3,6 +3,7 @@ package getintouch.com.GetInTouch.Controller;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizRequestDTO;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizResponseWithQuestionsDTO;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizResponseWithoutQuestionsDTO;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.Quiz.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Tag(name = "Quiz APIs", description = "Manage quizzes and quiz lifecycle")
@@ -24,6 +27,8 @@ import java.util.List;
 public class QuizController {
 
     private final QuizService quizService;
+
+    private final FileUploadService uploadService;
 
     /* =====================================================
        WRITE OPERATIONS (ADMIN)
@@ -156,5 +161,16 @@ public class QuizController {
     public ResponseEntity<Void> activateQuiz(@PathVariable Long quizId) {
         quizService.activateQuiz(quizId);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Create Thumbnail", description = "Create a new Thumbnail For Quiz (ADMIN only)")
+    @ApiResponse(responseCode = "201", description = "Thumbnail created successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
+    @PostMapping("thumbnail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createSlider(
+            @RequestParam MultipartFile file) {
+        String url=uploadService.uploadFile(file,"quiz");
+        return ResponseEntity.ok(new HashMap<>().put("URL",url));
     }
 }

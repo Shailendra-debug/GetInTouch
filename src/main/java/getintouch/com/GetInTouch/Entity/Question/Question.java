@@ -75,7 +75,7 @@ public class Question {
     /* ---------- ACTIVE FLAG ---------- */
     @Column(nullable = false)
     @Builder.Default
-    private boolean active = true; // Important: Default is now true!
+    private boolean active = true;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

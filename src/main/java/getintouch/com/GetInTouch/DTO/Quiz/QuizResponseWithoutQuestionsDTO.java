@@ -19,6 +19,9 @@ public class QuizResponseWithoutQuestionsDTO {
     private int timeLimit;
     private boolean active;
 
+
+    private String thumbnail;
+
     @Builder.Default
     private Boolean showResult = true;
 

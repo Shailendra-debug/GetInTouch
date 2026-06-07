@@ -3,6 +3,7 @@ package getintouch.com.GetInTouch.Controller;
 import getintouch.com.GetInTouch.DTO.Course.CourseRequestDTO;
 import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
 import getintouch.com.GetInTouch.Service.Course.CourseService;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -15,7 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -28,6 +31,8 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+
+    private final FileUploadService uploadService;
 
     // ================= ADMIN =================
 
@@ -168,5 +173,16 @@ public class CourseController {
         return ResponseEntity.ok(
                 courseService.searchCourses(keyword)
         );
+    }
+
+    @Operation(summary = "Create Thumbnail", description = "Create a new Thumbnail For Course (ADMIN only)")
+    @ApiResponse(responseCode = "201", description = "Thumbnail created successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
+    @PostMapping("thumbnail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createSlider(
+            @RequestParam MultipartFile file) {
+        String url=uploadService.uploadFile(file,"course");
+        return ResponseEntity.ok(new HashMap<>().put("URL",url));
     }
 }

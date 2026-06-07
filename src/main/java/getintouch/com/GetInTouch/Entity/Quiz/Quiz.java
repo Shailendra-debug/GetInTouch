@@ -37,6 +37,9 @@ public class Quiz {
     @Column(nullable = false)
     private int timeLimit;
 
+
+    private String thumbnail;
+
     @Column(nullable = false)
     private boolean active;
 

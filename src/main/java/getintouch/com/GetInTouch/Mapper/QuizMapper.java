@@ -31,6 +31,7 @@ public class QuizMapper {
                 .timeLimit(quiz.getTimeLimit())
                 .active(quiz.isActive())
                 .showResult(quiz.getShowResult())
+                .thumbnail(quiz.getThumbnail())
                 .type(quiz.getType() != null ? quiz.getType().name() : null)
                 .chapter(mapChapter(chapter)) // <-- Passes the full mapped object
                 .passingMarks(quiz.getPassMarks())
@@ -58,6 +59,7 @@ public class QuizMapper {
                 .description(quiz.getDescription())
                 .timeLimit(quiz.getTimeLimit())
                 .active(quiz.isActive())
+                .thumbnail(quiz.getThumbnail())
                 .showResult(quiz.getShowResult())
                 .type(quiz.getType() != null ? quiz.getType().name() : null)
                 .chapter(mapChapter(chapter)) // <-- Passes the full mapped object

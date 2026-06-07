@@ -27,6 +27,9 @@ public class QuizRequestDTO {
 
     private Boolean showResult;
 
+
+    private String thumbnail;
+
     @NotNull
     private QuizType type;
 
