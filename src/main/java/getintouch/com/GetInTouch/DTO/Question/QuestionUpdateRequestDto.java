@@ -21,5 +21,5 @@ public class QuestionUpdateRequestDto {
     private QuestionType type;
     private Difficulty difficulty;
     private Integer marks;
-    private Long courseId;
+    private Long chapterId;
 }

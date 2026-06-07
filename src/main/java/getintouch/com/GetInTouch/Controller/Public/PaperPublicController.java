@@ -18,7 +18,7 @@ public class PaperPublicController {
 
     private final PaperService paperService;
 
-    @GetMapping("/active")
+    @GetMapping()
     @Operation(summary = "Get all active papers for guests")
     public ResponseEntity<List<PaperResponseDTO>> getAllActivePapers() {
         return ResponseEntity.ok(paperService.getAllActivePapers());
@@ -30,7 +30,7 @@ public class PaperPublicController {
         return ResponseEntity.ok(paperService.getPaperById(id));
     }
 
-    @GetMapping("/course/{courseId}/active")
+    @GetMapping("/course/{courseId}")
     @Operation(summary = "Get active papers belonging to a course for guests")
     public ResponseEntity<List<PaperResponseDTO>> getActivePapersByCourseId(@PathVariable Long courseId) {
         return ResponseEntity.ok(paperService.getActivePapersByCourseId(courseId));

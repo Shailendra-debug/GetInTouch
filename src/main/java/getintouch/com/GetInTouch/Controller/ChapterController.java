@@ -66,7 +66,7 @@ public class ChapterController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(summary = "Get all chapters", description = "Fetches both active and inactive chapters.")
     public ResponseEntity<List<ChapterResponseDTO>> getAllChapters() {
         return ResponseEntity.ok(chapterService.getAllChapters());

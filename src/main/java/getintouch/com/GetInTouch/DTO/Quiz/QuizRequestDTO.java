@@ -32,7 +32,7 @@ public class QuizRequestDTO {
 
     /* ---------- COURSE ---------- */
     @NotNull
-    private Long courseId;
+    private Long chapterId;
 
     @NotNull
     private int passingMarks;

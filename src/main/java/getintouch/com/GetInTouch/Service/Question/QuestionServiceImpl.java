@@ -4,150 +4,218 @@ import getintouch.com.GetInTouch.DTO.Question.QuestionCreateRequestDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionResponseDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionUpdateRequestDto;
 import getintouch.com.GetInTouch.Entity.Question.Question;
+import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
 import getintouch.com.GetInTouch.Entity.Quiz.Course;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.QuestionMapper;
+import getintouch.com.GetInTouch.Repository.ChapterRepository;
 import getintouch.com.GetInTouch.Repository.CourseRepository;
+import getintouch.com.GetInTouch.Repository.PaperRepository;
 import getintouch.com.GetInTouch.Repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Slf4j
+@Transactional(readOnly = true) // Optimize read operations
 public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final CourseRepository courseRepository;
+    private final ChapterRepository chapterRepository;
     private final QuestionMapper questionMapper;
+    private final PaperRepository paperRepository;
 
     /* ---------- CREATE ---------- */
 
     @Override
+    @Transactional
     public QuestionResponseDto create(QuestionCreateRequestDto request) {
+        log.info("Creating question for Chapter ID: {}", request.getChapterId());
 
-        if (questionRepository.existsByQuestion(request.getQuestion())) {
-            throw new BadRequestException("Question already exists");
+        // Prevents identical questions from being added to the SAME chapter
+        if (questionRepository.existsByQuestionAndChapterId(request.getQuestion(), request.getChapterId())) {
+            throw new BadRequestException("This question already exists in this chapter.");
         }
 
-        Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Course not found id " + request.getCourseId()));
+        Chapter chapter = chapterRepository.findById(request.getChapterId())
+                .orElseThrow(() -> new ResourceNotFoundException("Chapter not found id " + request.getChapterId()));
+
+        if (!chapter.getActive()) {
+            throw new BadRequestException("Cannot add questions to an inactive chapter.");
+        }
 
         validateCorrectIndexes(request.getOptions(), request.getCorrect());
 
         Question question = questionMapper.toEntity(request);
-        question.setCourse(course);
+        question.setChapter(chapter);
+        question.setActive(true); // Ensure new questions default to active
 
         Question saved = questionRepository.save(question);
-
-        QuestionResponseDto dto = questionMapper.toDto(saved);
-        dto.setCourseName(course.getName());
-
-        return dto;
+        return mapToDtoWithChapter(saved, chapter);
     }
 
-    /* ---------- READ ---------- */
+    /* ---------- READ (Standard CRUD) ---------- */
 
     @Override
-    @Transactional(readOnly = true)
     public QuestionResponseDto getById(Long id) {
+        Question question = questionRepository.findCompleteQuestionById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Active question not found with id: " + id));
 
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Question not found with id: " + id));
-
-        QuestionResponseDto dto = questionMapper.toDto(question);
-        dto.setCourseName(question.getCourse().getName());
-
-        return dto;
+        return mapToDtoWithChapter(question, question.getChapter());
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<QuestionResponseDto> getAll() {
-
         return questionRepository.findAll()
                 .stream()
-                .map(question -> {
-                    QuestionResponseDto dto = questionMapper.toDto(question);
-                    dto.setCourseName(question.getCourse().getName());
-                    return dto;
-                })
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
                 .toList();
+    }
+
+    /* ---------- ADVANCED FETCHING ---------- */
+
+    @Override
+    public List<QuestionResponseDto> getByChapterId(Long chapterId) {
+        return questionRepository.findByChapterIdAndChapterActiveTrue(chapterId)
+                .stream()
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .toList();
+    }
+
+    @Override
+    public List<QuestionResponseDto> getByMultipleChapters(Long paperIds) {
+        if ( paperIds== null) return Collections.emptyList();
+
+        List<Long>chapterIds=paperRepository.findChapterIdsByPaperId(paperIds);
+
+        if ( chapterIds.isEmpty()) return Collections.emptyList();
+
+        return questionRepository.findByChapterIdInAndChapterActiveTrue(chapterIds)
+                .stream()
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .toList();
+    }
+
+    @Override
+    public List<QuestionResponseDto> searchByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isBlank()) return Collections.emptyList();
+
+        return questionRepository.searchByKeyword(keyword.trim())
+                .stream()
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .toList();
+    }
+
+    @Override
+    public List<QuestionResponseDto> generateRandomQuiz(Long chapterId, int limit) {
+        List<Long> randomIds = questionRepository.getRandomQuestionIds(chapterId, limit);
+
+        if (randomIds.isEmpty()) return Collections.emptyList();
+
+        return questionRepository.findAllById(randomIds)
+                .stream()
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .toList();
+    }
+
+    @Override
+    public long countByChapter(Long chapterId) {
+        return questionRepository.countByChapterIdAndChapterActiveTrue(chapterId);
     }
 
     /* ---------- UPDATE ---------- */
 
     @Override
+    @Transactional
     public QuestionResponseDto update(Long id, QuestionUpdateRequestDto request) {
-
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Question not found with id: " + id));
+        Question question = questionRepository.findByIdWithChapter(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + id));
 
         if (request.getOptions() != null && request.getCorrect() != null) {
             validateCorrectIndexes(request.getOptions(), request.getCorrect());
         }
 
-        Course course = question.getCourse();
-        if (request.getCourseId() != null) {
-            course = courseRepository.findById(request.getCourseId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(
-                                    "Course not found id " + request.getCourseId()));
-            question.setCourse(course);
+        Chapter chapter = question.getChapter();
+        if (request.getChapterId() != null && !request.getChapterId().equals(chapter.getId())) {
+            chapter = chapterRepository.findById(request.getChapterId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Chapter not found id " + request.getChapterId()));
+
+            if (!chapter.getActive()) {
+                throw new BadRequestException("Cannot move question to an inactive chapter.");
+            }
+            question.setChapter(chapter);
         }
 
         questionMapper.updateEntity(request, question);
-
         Question updated = questionRepository.save(question);
 
-        QuestionResponseDto dto = questionMapper.toDto(updated);
-        dto.setCourseName(course.getName());
+        return mapToDtoWithChapter(updated, chapter);
+    }
 
+    /* ---------- DELETE & ADMIN ---------- */
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        if (!questionRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Question not found with id: " + id);
+        }
+        // Because of @SQLDelete on the entity, this automatically sets active = false
+        questionRepository.deleteById(id);
+        log.info("Soft-deleted (deactivated) Question ID: {}", id);
+    }
+
+    @Override
+    public List<QuestionResponseDto> getDeactivatedQuestionsByChapter(Long chapterId) {
+        return questionRepository.findDeactivatedQuestionsByChapterId(chapterId)
+                .stream()
+                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void activate(Long id) {
+        log.info("Reactivating Question ID: {}", id);
+        questionRepository.activateById(id);
+    }
+
+    @Override
+    @Transactional
+    public void hardDelete(Long id) {
+        log.warn("PERMANENTLY deleting Question ID: {}", id);
+        questionRepository.hardDeleteById(id);
+    }
+
+    /* ---------- VALIDATION HELPERS ---------- */
+
+    private QuestionResponseDto mapToDtoWithChapter(Question question, Chapter chapter) {
+        QuestionResponseDto dto = questionMapper.toDto(question);
+        if (chapter != null) {
+            dto.setChapterName(chapter.getTitle());
+        }
         return dto;
     }
 
-    /* ---------- DELETE ---------- */
-
-    @Override
-    public void delete(Long id) {
-
-        if (!questionRepository.existsById(id)) {
-            throw new ResourceNotFoundException(
-                    "Question not found with id: " + id);
-        }
-
-        questionRepository.deleteById(id);
-    }
-
-    /* ---------- VALIDATION ---------- */
-
-    private void validateCorrectIndexes(
-            List<String> options,
-            List<Integer> correctIndexes
-    ) {
-
+    private void validateCorrectIndexes(List<String> options, List<Integer> correctIndexes) {
         if (options == null || options.isEmpty()) {
             throw new BadRequestException("Options must not be empty");
         }
-
         if (correctIndexes == null || correctIndexes.isEmpty()) {
             throw new BadRequestException("Correct answer must be provided");
         }
 
+        int size = options.size();
         for (Integer index : correctIndexes) {
-            if (index < 0 || index >= options.size()) {
-                throw new BadRequestException(
-                        "Correct answer index out of range");
+            if (index == null || index < 0 || index >= size) {
+                throw new BadRequestException("Correct answer index out of range: " + index);
             }
         }
     }

@@ -1,11 +1,9 @@
 package getintouch.com.GetInTouch.DTO.Quiz;
 
-
-import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
+import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
 @Getter
@@ -20,11 +18,14 @@ public class QuizResponseWithoutQuestionsDTO {
     private String description;
     private int timeLimit;
     private boolean active;
-    private Boolean showResult=true;
+
+    @Builder.Default
+    private Boolean showResult = true;
+
     private String type;
 
-    /* ---------- COURSE ---------- */
-    private CourseResponseDTO course;
+    /* ---------- FULL CHAPTER OBJECT ---------- */
+    private ChapterResponseDTO chapter;
 
     /* ---------- COUNTS ---------- */
     private int totalQuestions;
@@ -33,7 +34,7 @@ public class QuizResponseWithoutQuestionsDTO {
 
     /* ---------- SCHEDULE ---------- */
     private ZonedDateTime startTime;
-    private     ZonedDateTime endTime;
+    private ZonedDateTime endTime;
 
     /* ---------- AUDIT ---------- */
     private LocalDateTime createdAt;

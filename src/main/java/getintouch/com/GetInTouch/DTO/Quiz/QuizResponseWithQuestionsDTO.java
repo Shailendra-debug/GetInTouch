@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.DTO.Quiz;
 
+import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
 import getintouch.com.GetInTouch.DTO.Question.QuestionResponseForQuizDTO;
 import lombok.*;
@@ -24,7 +25,7 @@ public class QuizResponseWithQuestionsDTO {
     private String type;
 
     /* ---------- COURSE ---------- */
-    private CourseResponseDTO course;
+    private ChapterResponseDTO chapter;
 
     /* ---------- QUESTIONS ---------- */
     private List<QuestionResponseForQuizDTO> questions;

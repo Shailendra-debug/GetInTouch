@@ -7,6 +7,7 @@ import getintouch.com.GetInTouch.Service.Quiz.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,11 +26,11 @@ public class QuizController {
     private final QuizService quizService;
 
     /* =====================================================
-       CREATE QUIZ (ADMIN)
+       WRITE OPERATIONS (ADMIN)
        ===================================================== */
+
     @Operation(summary = "Create Quiz", description = "Create a new quiz with questions (ADMIN only)")
     @ApiResponse(responseCode = "201", description = "Quiz created successfully")
-    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<QuizResponseWithQuestionsDTO> createQuiz(
@@ -41,75 +42,8 @@ public class QuizController {
         );
     }
 
-    /* =====================================================
-       GET ALL QUIZZES (USER + ADMIN)
-       ===================================================== */
-    @Operation(summary = "Get All Quizzes", description = "Fetch all active quizzes")
-    @ApiResponse(responseCode = "200", description = "Quizzes fetched successfully")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @GetMapping("/active")
-    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllActiveQuizzes() {
-        return ResponseEntity.ok(quizService.getAllActiveQuizzes());
-    }
-
-
-    @Operation(summary = "Get All Quizzes", description = "Fetch all quizzes")
-    @ApiResponse(responseCode = "200", description = "Quizzes fetched successfully")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @GetMapping()
-    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllQuizzes() {
-        return ResponseEntity.ok(quizService.getAllQuizzes());
-    }
-
-
-    /* =====================================================
-       GET QUIZ SUMMARY
-       ===================================================== */
-    @Operation(summary = "Get Quiz Summary", description = "Fetch quiz details without questions")
-    @ApiResponse(responseCode = "200", description = "Quiz summary fetched")
-    @ApiResponse(responseCode = "404", description = "Quiz not found")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @GetMapping("/{quizId}/summary")
-    public ResponseEntity<QuizResponseWithoutQuestionsDTO> getQuizSummary(
-            @PathVariable Long quizId
-    ) {
-        return ResponseEntity.ok(quizService.getQuizSummary(quizId));
-    }
-
-    /* =====================================================
-       GET QUIZ WITH QUESTIONS (ADMIN)
-       ===================================================== */
-    @Operation(summary = "Get Quiz With Questions", description = "Fetch quiz including all questions (ADMIN only)")
-    @ApiResponse(responseCode = "200", description = "Quiz fetched successfully")
-    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{quizId}")
-    public ResponseEntity<QuizResponseWithQuestionsDTO> getQuizWithQuestions(
-            @PathVariable Long quizId
-    ) {
-        return ResponseEntity.ok(quizService.getQuizWithQuestions(quizId));
-    }
-
-    /* =====================================================
-       START QUIZ (USER)
-       ===================================================== */
-    @Operation(summary = "Start Quiz", description = "Start quiz and get questions (USER only)")
-    @ApiResponse(responseCode = "200", description = "Quiz started successfully")
-    @ApiResponse(responseCode = "403", description = "Forbidden - Only USER allowed")
-    @PreAuthorize("hasRole('USER')")
-    @PostMapping("/{quizId}/start")
-    public ResponseEntity<QuizResponseWithQuestionsDTO> startQuiz(
-            @PathVariable Long quizId
-    ) {
-        return ResponseEntity.ok(quizService.startQuiz(quizId));
-    }
-
-    /* =====================================================
-       UPDATE QUIZ (ADMIN)
-       ===================================================== */
     @Operation(summary = "Update Quiz", description = "Update quiz details (ADMIN only)")
     @ApiResponse(responseCode = "200", description = "Quiz updated successfully")
-    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{quizId}")
     public ResponseEntity<QuizResponseWithQuestionsDTO> updateQuiz(
@@ -121,16 +55,106 @@ public class QuizController {
         );
     }
 
-    /* =====================================================
-       DELETE QUIZ (ADMIN)
-       ===================================================== */
-    @Operation(summary = "Delete Quiz", description = "Delete a quiz (ADMIN only)")
+    @Operation(summary = "Delete Quiz", description = "Soft delete a quiz (ADMIN only)")
     @ApiResponse(responseCode = "204", description = "Quiz deleted successfully")
-    @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{quizId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteQuiz(@PathVariable Long quizId) {
+    public ResponseEntity<Void> deleteQuiz(@PathVariable Long quizId) {
         quizService.deleteQuiz(quizId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /* =====================================================
+       READ OPERATIONS
+       ===================================================== */
+
+    @Operation(summary = "Get All Active Quizzes", description = "Fetch all active quizzes for users")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @GetMapping("/active")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllActiveQuizzes() {
+        return ResponseEntity.ok(quizService.getAllActiveQuizzes());
+    }
+
+    @Operation(summary = "Get All Quizzes", description = "Fetch all quizzes (Admin View)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllQuizzes() {
+        return ResponseEntity.ok(quizService.getAllQuizzes());
+    }
+
+    @Operation(summary = "Get Quiz Summary", description = "Fetch quiz details without questions")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @GetMapping("/{quizId}/summary")
+    public ResponseEntity<QuizResponseWithoutQuestionsDTO> getQuizSummary(
+            @PathVariable Long quizId
+    ) {
+        return ResponseEntity.ok(quizService.getQuizSummary(quizId));
+    }
+
+    @Operation(summary = "Get Quiz With Questions", description = "Fetch quiz including all questions (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{quizId}")
+    public ResponseEntity<QuizResponseWithQuestionsDTO> getQuizWithQuestions(
+            @PathVariable Long quizId
+    ) {
+        return ResponseEntity.ok(quizService.getQuizWithQuestions(quizId));
+    }
+
+    /* =====================================================
+       STUDENT TEST TAKING
+       ===================================================== */
+
+    @Operation(summary = "Start Quiz", description = "Start quiz, generate attempt, and get questions (USER only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Quiz started successfully"),
+            @ApiResponse(responseCode = "400", description = "Quiz has not started or has already ended")
+    })
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/{quizId}/start")
+    public ResponseEntity<QuizResponseWithQuestionsDTO> startQuiz(
+            @PathVariable Long quizId
+    ) {
+        return ResponseEntity.ok(quizService.startQuiz(quizId));
+    }
+
+    /* =====================================================
+       ADVANCED FETCHING
+       ===================================================== */
+
+    @Operation(summary = "Get Quizzes by Chapter", description = "Fetch all quizzes belonging to a specific chapter")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @GetMapping("/chapter/{chapterId}")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getQuizzesByChapter(
+            @PathVariable Long chapterId
+    ) {
+        return ResponseEntity.ok(quizService.getQuizzesByChapter(chapterId));
+    }
+
+    @Operation(summary = "Get Currently Running Quizzes", description = "Fetch LIVE or EXAM quizzes currently active based on timestamps")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @GetMapping("/running")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getCurrentlyRunningQuizzes() {
+        return ResponseEntity.ok(quizService.getCurrentlyRunningQuizzes());
+    }
+
+    /* =====================================================
+       ADMIN TRASH BIN
+       ===================================================== */
+
+    @Operation(summary = "Get Deactivated Quizzes", description = "View the soft-deleted trash bin for a chapter (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/chapter/{chapterId}/trash")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getDeactivatedQuizzes(
+            @PathVariable Long chapterId
+    ) {
+        return ResponseEntity.ok(quizService.getDeactivatedQuizzes(chapterId));
+    }
+
+    @Operation(summary = "Reactivate Quiz", description = "Restore a soft-deleted quiz from the trash bin (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{quizId}/activate")
+    public ResponseEntity<Void> activateQuiz(@PathVariable Long quizId) {
+        quizService.activateQuiz(quizId);
+        return ResponseEntity.ok().build();
     }
 }

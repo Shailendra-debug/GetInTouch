@@ -1,8 +1,10 @@
 package getintouch.com.GetInTouch.Entity.Question;
 
-import getintouch.com.GetInTouch.Entity.Quiz.Course;
+import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,6 +20,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+/* ---------- ACTIVE (SOFT DELETE) CONFIGURATION ---------- */
+@SQLDelete(sql = "UPDATE questions SET active = false WHERE id = ?")
+@SQLRestriction("active = true")
 public class Question {
 
     @Id
@@ -27,10 +32,11 @@ public class Question {
     @Column(nullable = false, length = 500)
     private String question;
 
-    /* ---------- COURSE MAPPING ---------- */
+    /* ---------- Chapter MAPPING ---------- */
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "chapter_id", nullable = false)
+    private Chapter chapter;
 
     /* ---------- OPTIONS ---------- */
     @ElementCollection
@@ -65,6 +71,11 @@ public class Question {
     @Column(nullable = false)
     @Builder.Default
     private int marks = 1;
+
+    /* ---------- ACTIVE FLAG ---------- */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true; // Important: Default is now true!
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

@@ -11,13 +11,16 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-
 @Entity
 @Table(
         name = "quizzes",
-        indexes = @Index(name = "idx_quiz_course", columnList = "course_id")
+        indexes = @Index(name = "idx_quiz_chapter", columnList = "chapter_id")
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class Quiz {
 
@@ -37,9 +40,10 @@ public class Quiz {
     @Column(nullable = false)
     private boolean active;
 
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "chapter_id")
+    private Chapter chapter;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -62,7 +66,8 @@ public class Quiz {
     )
     private List<Question> questions;
 
-    private Boolean showResult=true;
+    @Builder.Default
+    private Boolean showResult = true;
 
     @PrePersist
     @PreUpdate
@@ -87,6 +92,4 @@ public class Quiz {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-
 }

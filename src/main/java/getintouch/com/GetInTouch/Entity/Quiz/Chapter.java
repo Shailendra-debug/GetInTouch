@@ -1,20 +1,18 @@
 package getintouch.com.GetInTouch.Entity.Quiz;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
-
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Data
+@Table(name = "chapters")
+@Getter // Replaced @Data with @Getter & @Setter to prevent lazy-loading crashes
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "chapters")
 public class Chapter {
 
     @Id
@@ -39,9 +37,15 @@ public class Chapter {
 
     private LocalDateTime updatedAt;
 
+    /* ---------- PAPER MAPPING ---------- */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paper_id", nullable = false)
     private Paper paper;
+
+
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Quiz> quizzes = new ArrayList<>();
 
     @PrePersist
     public void onCreate() {

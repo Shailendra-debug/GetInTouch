@@ -3,6 +3,8 @@ package getintouch.com.GetInTouch.Repository;
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -38,4 +40,9 @@ public interface PaperRepository extends JpaRepository<Paper, Long> {
     boolean existsByCourseIdAndNameIgnoreCase(Long courseId, String name);
 
     boolean existsByCourseIdAndPaperNumber(Long courseId, Long paperNumber);
+
+    @Query("SELECT c.id FROM Chapter c WHERE c.paper.id = :paperId ORDER BY c.chapterNumber ASC")
+    List<Long> findChapterIdsByPaperId(@Param("paperId") Long paperId);
+
+
 }

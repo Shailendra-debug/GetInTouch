@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.DTO.Question;
 
+import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import getintouch.com.GetInTouch.Entity.Question.Difficulty;
 import getintouch.com.GetInTouch.Entity.Question.QuestionType;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +31,7 @@ public class QuestionCreateRequestDto {
 
     @NotNull
     @Positive
-    private Long courseId;
+    private Long chapterId;
 
     @NotNull
     private QuestionType type;

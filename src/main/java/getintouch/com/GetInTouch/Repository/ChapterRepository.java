@@ -1,14 +1,14 @@
 package getintouch.com.GetInTouch.Repository;
 
 import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,44 +18,68 @@ import java.util.Optional;
 @Repository
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
-    // 1. Single Fetch: Fetches active chapter and joins its parent Paper
+    // =========================================================================
+    // CORE FETCHES (Automatically ignores active = false due to @SQLRestriction)
+    // =========================================================================
+
+    /**
+     * Replaces standard findById to eagerly fetch the Paper association.
+     */
     @EntityGraph(attributePaths = {"paper"})
-    Optional<Chapter> findByIdAndActiveTrue(Long id);
+    @Query("SELECT c FROM Chapter c WHERE c.id = :id")
+    Optional<Chapter> findByIdWithPaper(@Param("id") Long id);
 
-    // If your Paper also has a Course relationship that you map in your DTOs,
-    // you can fetch nested relationships like this instead:
-    // @EntityGraph(attributePaths = {"paper", "paper.course"})
-
-    // 2. Fixes N+1 when retrieving all active chapters
     @EntityGraph(attributePaths = {"paper"})
-    List<Chapter> findByActiveTrueOrderByChapterNumberAsc();
+    List<Chapter> findAllByOrderByChapterNumberAsc();
 
-    // 3. Fixes N+1 when retrieving all chapters of a paper
     @EntityGraph(attributePaths = {"paper"})
     List<Chapter> findByPaperIdOrderByChapterNumberAsc(Long paperId);
 
-    // 4. Fixes N+1 when retrieving active chapters of a paper
-    @EntityGraph(attributePaths = {"paper"})
-    List<Chapter> findByPaperIdAndActiveTrueOrderByChapterNumberAsc(Long paperId);
-
-    // 5. Fixes N+1 when searching single unique chapter records
     @EntityGraph(attributePaths = {"paper"})
     Optional<Chapter> findByPaperIdAndChapterNumber(Long paperId, Long chapterNumber);
 
-    // 6. Fix for write-operation validation paths (Add this for your updateChapter service methods)
+    // =========================================================================
+    // SEARCH
+    // =========================================================================
+
     @EntityGraph(attributePaths = {"paper"})
-    Optional<Chapter> findWithPaperById(Long id);
+    List<Chapter> findByTitleContainingIgnoreCaseOrderByChapterNumberAsc(String keyword);
 
-    // 7. Added derived DB-level Search query to prevent any in-memory stream filtering bottlenecks
-    @EntityGraph(attributePaths = {"paper"})
-    List<Chapter> findByActiveTrueAndTitleContainingIgnoreCaseOrderByChapterNumberAsc(String keyword);
+    // =========================================================================
+    // VALIDATION QUERIES
+    // =========================================================================
 
-
-    // --- Validation Queries (Left as-is: already fully optimized) ---
-
-    // Check duplicate chapter title within a paper
     boolean existsByPaperIdAndTitleIgnoreCase(Long paperId, String title);
 
-    // Check duplicate chapter number within a paper
     boolean existsByPaperIdAndChapterNumber(Long paperId, Long chapterNumber);
+
+    // =========================================================================
+    // ADMIN / TRASH BIN MANAGEMENT (Native Queries bypass @SQLRestriction)
+    // =========================================================================
+
+    /**
+     * Fetches all deactivated (soft-deleted) chapters for a specific paper.
+     */
+    @Query(value = "SELECT * FROM chapters WHERE paper_id = :paperId AND active = false", nativeQuery = true)
+    List<Chapter> findDeactivatedChaptersByPaperId(@Param("paperId") Long paperId);
+
+    /**
+     * Fetches all deactivated chapters across the platform.
+     */
+    @Query(value = "SELECT * FROM chapters WHERE active = false", nativeQuery = true)
+    List<Chapter> findAllDeactivatedChapters();
+
+    /**
+     * Reactivates a soft-deleted chapter.
+     */
+    @Modifying
+    @Query(value = "UPDATE chapters SET active = true WHERE id = :id", nativeQuery = true)
+    void activateById(@Param("id") Long id);
+
+    /**
+     * Permanently wipes the chapter from the database.
+     */
+    @Modifying
+    @Query(value = "DELETE FROM chapters WHERE id = :id", nativeQuery = true)
+    void hardDeleteById(@Param("id") Long id);
 }

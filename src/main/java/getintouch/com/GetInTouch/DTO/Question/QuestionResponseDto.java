@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.DTO.Question;
 
 
+import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import getintouch.com.GetInTouch.Entity.Question.Difficulty;
 import getintouch.com.GetInTouch.Entity.Question.QuestionType;
 import lombok.*;
@@ -23,7 +24,7 @@ public class QuestionResponseDto {
     private QuestionType type;
     private Difficulty difficulty;
     private Integer marks;
-    private String courseName;
+    private String chapterName;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
