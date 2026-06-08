@@ -1,5 +1,6 @@
 package getintouch.com.GetInTouch.Entity.Quiz;
 
+import getintouch.com.GetInTouch.Entity.Note.Notes;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,6 +50,24 @@ public class Paper {
     )
     @Builder.Default
     private List<Chapter> chapters = new ArrayList<>();
+
+
+
+    @OneToMany(
+            mappedBy = "paper",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Notes> notes = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "paper",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Quiz> quizzes = new ArrayList<>();
 
     @PrePersist
     public void onCreate() {

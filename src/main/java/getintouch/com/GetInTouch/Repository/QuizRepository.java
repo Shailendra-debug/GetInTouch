@@ -21,17 +21,10 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     // SINGLE QUIZ (WITH QUESTIONS) - Optimized for Test-Taking
     // =========================================================================
 
-    /**
-     * Eagerly loads the Chapter AND the entire ManyToMany Questions list.
-     * Crucial for the "Start Quiz" endpoint to prevent severe N+1 database crashing.
-     */
     @EntityGraph(attributePaths = {"chapter", "questions"})
     @Query("SELECT q FROM Quiz q WHERE q.id = :id")
     Optional<Quiz> findCompleteQuizById(@Param("id") Long id);
 
-    /**
-     * Lightweight fetch for metadata (ignores the massive questions list).
-     */
     @EntityGraph(attributePaths = {"chapter"})
     @Query("SELECT q FROM Quiz q WHERE q.id = :id")
     Optional<Quiz> findByIdWithChapter(@Param("id") Long id);
@@ -53,10 +46,6 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     // SCHEDULED QUIZZES (LIVE / EXAM)
     // =========================================================================
 
-    /**
-     * Finds quizzes that are currently running.
-     * Note: No need for `q.active = true` here because @SQLRestriction applies it automatically!
-     */
     @EntityGraph(attributePaths = {"chapter"})
     @Query("""
         SELECT q FROM Quiz q
@@ -65,6 +54,16 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
           AND q.endTime >= CURRENT_TIMESTAMP
     """)
     List<Quiz> findCurrentlyRunningQuizzes();
+
+    // =========================================================================
+    // PAPER-WISE QUIZZES
+    // =========================================================================
+
+    /**
+     * Fetches all active quizzes belonging to a specific paper, ordered by latest.
+     * Uses EntityGraph to fetch the associated chapter in a single join query.
+     */
+    List<Quiz> findByPaperIdAndChapterIsNullOrderByCreatedAtDesc(Long paperId);
 
     // =========================================================================
     // VALIDATION / EXISTS QUERIES
@@ -76,29 +75,28 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     // ADMIN / TRASH BIN MANAGEMENT (Native Queries bypass @SQLRestriction)
     // =========================================================================
 
-    /**
-     * Fetches all deactivated (soft-deleted) quizzes for a specific chapter.
-     */
     @Query(value = "SELECT * FROM quizzes WHERE chapter_id = :chapterId AND active = false", nativeQuery = true)
     List<Quiz> findDeactivatedQuizzesByChapterId(@Param("chapterId") Long chapterId);
 
-    /**
-     * Fetches all deactivated quizzes across the platform.
-     */
     @Query(value = "SELECT * FROM quizzes WHERE active = false", nativeQuery = true)
     List<Quiz> findAllDeactivatedQuizzes();
 
     /**
      * Reactivates a soft-deleted quiz.
+     * FIXED: Added clearAutomatically to prevent stale Hibernate cache.
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE quizzes SET active = true WHERE id = :id", nativeQuery = true)
     void activateById(@Param("id") Long id);
 
     /**
      * Permanently wipes the quiz from the database.
+     * FIXED: Added query to clean the join table first, preventing Foreign Key errors.
      */
-    @Modifying
-    @Query(value = "DELETE FROM quizzes WHERE id = :id", nativeQuery = true)
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+        DELETE FROM quiz_questions WHERE quiz_id = :id;
+        DELETE FROM quizzes WHERE id = :id;
+    """, nativeQuery = true)
     void hardDeleteById(@Param("id") Long id);
 }

@@ -30,6 +30,8 @@ public class QuizResponseWithQuestionsDTO {
     /* ---------- COURSE ---------- */
     private ChapterResponseDTO chapter;
 
+    private Long quizId;
+
     /* ---------- QUESTIONS ---------- */
     private List<QuestionResponseForQuizDTO> questions;
     private int totalQuestions;

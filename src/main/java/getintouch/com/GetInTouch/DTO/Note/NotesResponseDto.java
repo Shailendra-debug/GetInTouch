@@ -8,18 +8,28 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class NotesResponseDto {
 
     private Long id;
+
     private String title;
+
     private BigDecimal price;
+
     private String description;
+
     private String thumbnailUrl;
+
     private String pdfUrl;
-    private String paymentQrUrl;
+
+    private Long paperId;
+
+    private String paperName;
+
     private Boolean active;
+
     private LocalDateTime createdAt;
 }

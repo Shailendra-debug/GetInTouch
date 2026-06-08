@@ -31,6 +31,8 @@ public interface QuizService {
 
     QuizResponseWithoutQuestionsDTO getQuizSummary(Long quizId);
 
+    List<QuizResponseWithoutQuestionsDTO> getGeneralQuizzesByPaper(Long paperId);
+
     /**
      * For Admins/Teachers to view the full quiz setup.
      */

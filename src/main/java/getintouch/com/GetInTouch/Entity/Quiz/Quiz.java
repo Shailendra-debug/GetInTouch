@@ -48,6 +48,11 @@ public class Quiz {
     @JoinColumn(name = "chapter_id")
     private Chapter chapter;
 
+    // FIXED: Added mapping and semicolon
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paper_id")
+    private Paper paper;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private QuizType type;
@@ -69,6 +74,8 @@ public class Quiz {
     )
     private List<Question> questions;
 
+
+
     @Builder.Default
     private Boolean showResult = true;
 
@@ -87,6 +94,8 @@ public class Quiz {
             throw new IllegalStateException("PRACTICE quiz must not have schedule");
         }
     }
+
+
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

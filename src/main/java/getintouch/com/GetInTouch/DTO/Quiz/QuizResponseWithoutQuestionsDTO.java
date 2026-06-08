@@ -30,6 +30,8 @@ public class QuizResponseWithoutQuestionsDTO {
     /* ---------- FULL CHAPTER OBJECT ---------- */
     private ChapterResponseDTO chapter;
 
+    private Long quizId;
+
     /* ---------- COUNTS ---------- */
     private int totalQuestions;
     private int totalMarks;

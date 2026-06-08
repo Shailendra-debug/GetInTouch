@@ -163,6 +163,19 @@ public class QuizController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("paperId/{paperId}")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getGeneralQuizzesByPaper(
+            @PathVariable Long paperId) {
+
+        List<QuizResponseWithoutQuestionsDTO> responses = quizService.getGeneralQuizzesByPaper(paperId);
+
+        if (responses.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(responses);
+    }
+
     @Operation(summary = "Create Thumbnail", description = "Create a new Thumbnail For Quiz (ADMIN only)")
     @ApiResponse(responseCode = "201", description = "Thumbnail created successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")

@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.Entity.Note;
 
 
+import getintouch.com.GetInTouch.Entity.Quiz.Paper;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,11 +9,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notes",
+@Table(
+        name = "notes",
         indexes = {
                 @Index(name = "idx_notes_active", columnList = "active"),
                 @Index(name = "idx_notes_created_at", columnList = "created_at")
-        })
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,50 +27,43 @@ public class Notes {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Title of notes
     @Column(nullable = false, length = 255)
     private String title;
 
-    // Price (safe for money)
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    // Description
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Thumbnail Image URL
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    // PDF file URL
     @Column(name = "pdf_url", nullable = false)
     private String pdfUrl;
 
-    // Payment QR Code URL (NEW FIELD)
-    @Column(name = "payment_qr_url")
-    private String paymentQrUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paper_id", nullable = false)
+    private Paper paper;
 
-    // Active status
+    @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 
-    // Created timestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Updated timestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Auto timestamps
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 }

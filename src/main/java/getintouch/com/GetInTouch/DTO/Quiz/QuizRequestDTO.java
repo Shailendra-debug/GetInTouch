@@ -34,8 +34,10 @@ public class QuizRequestDTO {
     private QuizType type;
 
     /* ---------- COURSE ---------- */
-    @NotNull
+
     private Long chapterId;
+
+    private Long quizId;
 
     @NotNull
     private int passingMarks;

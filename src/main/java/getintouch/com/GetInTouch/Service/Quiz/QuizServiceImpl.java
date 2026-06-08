@@ -171,6 +171,14 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    public List<QuizResponseWithoutQuestionsDTO> getGeneralQuizzesByPaper(Long paperId) {
+        return quizRepository.findByPaperIdAndChapterIsNullOrderByCreatedAtDesc(paperId)
+                .stream()
+                .map(quiz -> QuizMapper.toWithoutQuestions(quiz, quiz.getChapter()))
+                .toList();
+    }
+
+    @Override
     public QuizResponseWithQuestionsDTO getQuizWithQuestions(Long quizId) {
         Quiz quiz = quizRepository.findCompleteQuizById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));

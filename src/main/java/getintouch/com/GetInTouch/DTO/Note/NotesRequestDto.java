@@ -12,21 +12,24 @@ import java.math.BigDecimal;
 @Builder
 public class NotesRequestDto {
 
-    @NotBlank
+    @NotBlank(message = "Title is required")
+    @Size(max = 255, message = "Title cannot exceed 255 characters")
     private String title;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = true)
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than or equal to 0")
     private BigDecimal price;
 
     private String description;
 
     private String thumbnailUrl;
 
-    @NotBlank
+    @NotBlank(message = "PDF URL is required")
     private String pdfUrl;
 
-    private String paymentQrUrl;
+    @NotNull(message = "Paper ID is required")
+    private Long paperId;
 
+    @Builder.Default
     private Boolean active = true;
 }

@@ -43,7 +43,6 @@ public class OrderService {
                 .orderId(order.getId())
                 .noteId(note.getId())
                 .status(order.getStatus().name())
-                .paymentQrUrl(note.getPaymentQrUrl())
                 .build();
     }
 
@@ -130,7 +129,6 @@ public class OrderService {
                 .stream()
                 .map(note -> OrderResponse.builder()
                         .noteId(note.getId())
-                        .paymentQrUrl(note.getPaymentQrUrl())
                         .status("APPROVED")
                         .build())
                 .toList();
