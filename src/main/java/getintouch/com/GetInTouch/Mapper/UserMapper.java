@@ -24,6 +24,7 @@ public class UserMapper {
         dto.setPhone(user.getPhone());
         dto.setRole(user.getRole().name());
         dto.setCreatedAt(user.getCreatedAt());
+        dto.setProfileImageUrl(user.getProfileImageUrl());
         return dto;
     }
 }

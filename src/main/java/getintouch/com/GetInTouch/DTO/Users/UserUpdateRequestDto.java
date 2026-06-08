@@ -17,5 +17,6 @@ public class UserUpdateRequestDto {
 
     private String fullName;
     private String phone;
+
     private Boolean enabled;
 }

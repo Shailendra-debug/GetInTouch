@@ -4,8 +4,11 @@ import getintouch.com.GetInTouch.DTO.Users.RegisterSendOtpResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.UserRegisterRequestDto;
 import getintouch.com.GetInTouch.DTO.Users.UserResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.UserUpdateRequestDto;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.User.UserService;
+import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -14,7 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Tag(name = "User APIs", description = "Manage users and roles")
@@ -24,6 +29,8 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+
+    private final FileUploadService uploadService;
 
     /* =====================================================
        REGISTER USER (PUBLIC)
@@ -128,5 +135,34 @@ public class UserController {
 
         userService.removeAdmin(id);
         return ResponseEntity.ok("ADMIN promoted to User");
+    }
+
+    @Operation(
+            summary = "Upload Profile Photo",
+            description = "Upload profile photo for the currently logged-in user"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile photo uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    @PostMapping("/profile/photo")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<?> uploadProfilePhoto(
+            @RequestParam("file") MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body("Please select a file");
+        }
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        String imageUrl = uploadService.uploadFile(file, "profile");
+
+        return ResponseEntity.ok(
+                userService.UpdateProfileImageUrl(imageUrl, currentUserId)
+        );
     }
 }

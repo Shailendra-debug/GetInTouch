@@ -236,6 +236,18 @@ public class UserServiceImpl implements UserService {
 
         return saveUser(request);
     }
+
+    @Override
+    public UserResponseDto UpdateProfileImageUrl(String url, Long id) {
+        User user=userRepository.getReferenceById(id);
+
+        user.setProfileImageUrl(url);
+
+        User saveUser=userRepository.save(user);
+
+        return UserMapper.toDto(saveUser);
+    }
+
     private UserResponseDto saveUser(RegisterVerifyOtpRequestDto request) {
 
         RegisterUser user = registerUserRepository.findByEmail(request.getEmail())

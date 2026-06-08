@@ -41,6 +41,8 @@ public class User {
 
     private String phone;
 
+    private String profileImageUrl;
+
     // ---------- ROLE & STATUS ----------
 
     @Enumerated(EnumType.STRING)

@@ -18,8 +18,10 @@ public class UserResponseDto {
     private String email;
     private String fullName;
     private String phone;
+    private String profileImageUrl;
     private String role;
     private LocalDateTime createdAt;
+
 
     // getters & setters
 }
