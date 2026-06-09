@@ -99,6 +99,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDto getByGmail(String gmail) {
+        return UserMapper.toDto(userRepository.findByEmail(gmail).get());
+    }
+
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponseDto> getAll() {
         return userRepository.findAll()

@@ -60,3 +60,9 @@ cloudflare:
     bucket: ${R2_BUCKET}
     public-url: ${R2_PUBLIC_URL}
 
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
+

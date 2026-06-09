@@ -1,11 +1,14 @@
 package getintouch.com.GetInTouch.Entity.User;
 
+import getintouch.com.GetInTouch.Entity.Note.Notes;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -42,6 +45,14 @@ public class User {
     private String phone;
 
     private String profileImageUrl;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_purchased_notes", // Name of the join table
+            joinColumns = @JoinColumn(name = "user_id"), // Foreign key for User
+            inverseJoinColumns = @JoinColumn(name = "note_id") // Foreign key for Notes
+    )
+    private Set<Notes> purchasedNotes = new HashSet<>();
 
     // ---------- ROLE & STATUS ----------
 

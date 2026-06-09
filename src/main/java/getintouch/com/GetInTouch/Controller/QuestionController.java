@@ -23,6 +23,14 @@ import java.util.List;
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
 @Tag(name = "Question Management", description = "Endpoints for creating, managing, and randomly generating quiz questions")
+
+@ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Questions created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed"),
+        @ApiResponse(responseCode = "404", description = "Chapter not found")
+})
+
 public class QuestionController {
 
     private final QuestionService questionService;
@@ -142,5 +150,20 @@ public class QuestionController {
     public ResponseEntity<Void> hardDeleteQuestion(@PathVariable Long id) {
         questionService.hardDelete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Create Multiple Questions",
+            description = "Create multiple questions in a single request (ADMIN only)"
+    )
+    @PostMapping("/bulk")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<QuestionResponseDto>> createQuestions(
+            @RequestBody @Valid List<QuestionCreateRequestDto> request) {
+
+        List<QuestionResponseDto> response =
+                questionService.createListOfQus(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

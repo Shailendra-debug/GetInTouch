@@ -59,7 +59,7 @@ public class UserController {
     }
 
     /* =====================================================
-       GET USER BY ID
+       GET USER BY ID / GMAIL
        ===================================================== */
     @Operation(summary = "Get User By ID", description = "Fetch user details by ID")
     @ApiResponse(responseCode = "200", description = "User found")
@@ -70,6 +70,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getById(id));
     }
 
+    @Operation(summary = "Get User By Gmail", description = "Fetch user details by Gmail")
+    @ApiResponse(responseCode = "200", description = "User found")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    // CHANGED: Added "/email" to separate this endpoint from the dynamic id path above
+    @GetMapping("/email/{gmail}")
+    @PreAuthorize("hasRole('ADMIN')")
+    // GOOD PRACTICE: Match your @PathVariable parameter case exactly with the URI variable name
+    public ResponseEntity<UserResponseDto> getByGmail(@PathVariable("gmail") String gmail) {
+        return ResponseEntity.ok(userService.getByGmail(gmail));
+    }
     /* =====================================================
        GET ALL USERS (ADMIN)
        ===================================================== */

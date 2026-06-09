@@ -2,11 +2,14 @@ package getintouch.com.GetInTouch.Entity.Note;
 
 
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
+import getintouch.com.GetInTouch.Entity.User.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -45,6 +48,10 @@ public class Notes {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paper_id", nullable = false)
     private Paper paper;
+
+    @ManyToMany(mappedBy = "purchasedNotes", fetch = FetchType.LAZY)
+    @Builder.Default // Ensures Builder doesn't overwrite the initialization if using Lombok Builder
+    private Set<User> buyers = new HashSet<>();
 
     @Builder.Default
     @Column(nullable = false)

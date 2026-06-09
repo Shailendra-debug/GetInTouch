@@ -107,7 +107,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     long countByTypeAndChapterActiveTrue(QuestionType type);
 
     long countByChapterIdAndDifficultyAndChapterActiveTrue(Long chapterId, Difficulty difficulty);
-
     // =========================================================================
     // ACTIVE / INACTIVE MANAGEMENT (Admin Trash Bin)
     // =========================================================================

@@ -16,6 +16,10 @@ public interface QuestionService {
 
     QuestionResponseDto create(QuestionCreateRequestDto request);
 
+    List<QuestionResponseDto> createListOfQus(List<QuestionCreateRequestDto> request);
+
+
+
     QuestionResponseDto getById(Long id);
 
     List<QuestionResponseDto> getAll();

@@ -18,8 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +61,42 @@ public class QuestionServiceImpl implements QuestionService {
         Question saved = questionRepository.save(question);
         return mapToDtoWithChapter(saved, chapter);
     }
+
+    @Override
+    public List<QuestionResponseDto> createListOfQus(List<QuestionCreateRequestDto> request) {
+        Set<Long> chapterIds = request.stream()
+                .map(QuestionCreateRequestDto::getChapterId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Chapter> chapterMap = chapterRepository.findAllById(chapterIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        Chapter::getId,
+                        Function.identity()
+                ));
+
+        List<Question>questionList=new ArrayList<>();
+
+        for (QuestionCreateRequestDto dto:request){
+            if (!chapterMap.containsKey(dto.getChapterId()))
+                throw new ResourceNotFoundException("Chapter not found id " + dto.getChapterId());
+
+            if (!chapterMap.get(dto.getChapterId()).getActive()) {
+                throw new BadRequestException("Cannot add questions to an inactive chapter.");
+            }
+
+            Question question = questionMapper.toEntity(dto);
+            question.setChapter(chapterMap.get(dto.getChapterId()));
+            question.setActive(true);
+
+            questionList.add(question);
+        }
+        List<Question>savedQus=questionRepository.saveAll(questionList);
+
+        return savedQus.stream().map(qus->mapToDtoWithChapter(qus,qus.getChapter())).toList();
+    }
+
+
 
     /* ---------- READ (Standard CRUD) ---------- */
 
@@ -219,4 +256,5 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
     }
+
 }

@@ -124,21 +124,4 @@ public class NotesAdminController {
                 fileUploadService.uploadFile(file, "thumbnails")
         );
     }
-
-    @Operation(
-            summary = "Upload Payment QR",
-            description = "Upload payment QR image to Cloudflare R2"
-    )
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping(
-            value = "/upload_qr",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> uploadQr(
-            @RequestParam("file") MultipartFile file) {
-
-        return ResponseEntity.ok(
-                fileUploadService.uploadFile(file, "paymentQr")
-        );
-    }
 }

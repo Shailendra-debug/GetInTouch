@@ -1,7 +1,10 @@
 package getintouch.com.GetInTouch.Controller.Note;
 
+import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
 import getintouch.com.GetInTouch.DTO.Note.NotesUserResponse;
 import getintouch.com.GetInTouch.Entity.Note.Notes;
+import getintouch.com.GetInTouch.Service.Note.NotesService;
+import getintouch.com.GetInTouch.Service.Note.NotesServiceImpl;
 import getintouch.com.GetInTouch.Service.Note.NotesUserService;
 import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,30 +24,32 @@ public class NotesUserController {
 
     private final NotesUserService service;
 
-    @Operation(summary = "Get all approved notes for logged-in user")
-    @GetMapping("/approved")
-    public ResponseEntity<List<NotesUserResponse>> getApproved() {
+    private final NotesService notesService;
+
+    @Operation(summary = "Get all Purchase notes for logged-in user")
+    @GetMapping("/purchased")
+    public ResponseEntity<List<NotesResponseForUserDto>> getApproved() {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
 
         return ResponseEntity.ok(
-                service.getApprovedNotes(currentUser)
+                notesService.getAllActivePurchase(currentUser)
         );
     }
 
-    @Operation(summary = "Get all notes with access status")
+    @Operation(summary = "Get all notes")
     @GetMapping
-    public ResponseEntity<List<NotesUserResponse>> getAll() {
+    public ResponseEntity<List<NotesResponseForUserDto>> getAll() {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
 
         return ResponseEntity.ok(
-                service.getAllNotesWithStatus(currentUser)
+                notesService.getAllActiveForUser(currentUser)
         );
     }
 
-    @Operation(summary = "Get approved note by ID")
-    @GetMapping("/approved/{id}")
+    @Operation(summary = "Get Purchase note by ID")
+    @GetMapping("/{id}")
     public ResponseEntity<Notes> getById(
             @PathVariable Long id) {
 
@@ -54,4 +59,6 @@ public class NotesUserController {
                 service.getApprovedNote(currentUser, id)
         );
     }
+
+
 }
