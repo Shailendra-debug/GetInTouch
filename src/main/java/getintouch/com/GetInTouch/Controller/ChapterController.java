@@ -132,7 +132,7 @@ public class ChapterController {
     public ResponseEntity<?> createSlider(
             @RequestParam MultipartFile file) {
         String url=uploadService.uploadFile(file,"chapter");
-        return ResponseEntity.ok(new HashMap<>().put("URL",url));
+        return ResponseEntity.ok(url);
     }
 
 }

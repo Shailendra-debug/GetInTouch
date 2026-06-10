@@ -49,7 +49,7 @@ public class NotesUserController {
     @Operation(summary = "Get Purchase note by ID")
     @GetMapping("/{id}")
     public ResponseEntity<NotesResponseForUserDto> getById(
-            @PathVariable Long id) {
+            @PathVariable Long id   ) {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
 

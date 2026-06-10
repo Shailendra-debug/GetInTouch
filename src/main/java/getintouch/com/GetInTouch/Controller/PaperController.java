@@ -132,6 +132,6 @@ public class PaperController {
     public ResponseEntity<?> createSlider(
             @RequestParam MultipartFile file) {
         String url=uploadService.uploadFile(file,"paper");
-        return ResponseEntity.ok(new HashMap<>().put("URL",url));
+        return ResponseEntity.ok(url);
     }
 }

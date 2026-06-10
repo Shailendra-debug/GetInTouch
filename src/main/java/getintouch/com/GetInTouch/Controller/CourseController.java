@@ -183,6 +183,6 @@ public class CourseController {
     public ResponseEntity<?> createSlider(
             @RequestParam MultipartFile file) {
         String url=uploadService.uploadFile(file,"course");
-        return ResponseEntity.ok(new HashMap<>().put("URL",url));
+        return ResponseEntity.ok(url);
     }
 }
