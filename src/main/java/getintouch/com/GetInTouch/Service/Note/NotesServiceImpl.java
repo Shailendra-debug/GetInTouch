@@ -3,18 +3,27 @@ package getintouch.com.GetInTouch.Service.Note;
 import getintouch.com.GetInTouch.DTO.Note.NotesRequestDto;
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseDto;
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
+import getintouch.com.GetInTouch.DTO.Payment.PaymentInitiateResponseDTO;
+import getintouch.com.GetInTouch.DTO.Payment.PaymentRequestDTO;
 import getintouch.com.GetInTouch.Entity.Note.Notes;
+import getintouch.com.GetInTouch.Entity.Note.Purchase;
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
 import getintouch.com.GetInTouch.Entity.User.User;
+import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Repository.NotesRepository;
 import getintouch.com.GetInTouch.Repository.PaperRepository;
+import getintouch.com.GetInTouch.Repository.PurchaseRepository;
 import getintouch.com.GetInTouch.Repository.UserRepository;
+import getintouch.com.GetInTouch.Service.Payments.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +36,8 @@ public class NotesServiceImpl implements NotesService {
     private final NotesRepository notesRepository;
     private final PaperRepository paperRepository;
     private final UserRepository userRepository;
+    private final PaymentService paymentService;
+    private final PurchaseRepository purchaseRepository;
 
     @Override
     @Transactional
@@ -50,7 +61,6 @@ public class NotesServiceImpl implements NotesService {
         notes.setPdfUrl(dto.getPdfUrl());
         notes.setActive(dto.getActive());
 
-        // Update Paper relationship if provided
         if (dto.getPaperId() != null) {
             notes.setPaper(paperRepository.getReferenceById(dto.getPaperId()));
         }
@@ -68,7 +78,7 @@ public class NotesServiceImpl implements NotesService {
     @Override
     @Transactional(readOnly = true)
     public List<NotesResponseDto> getAll() {
-        log.debug("Fetching all notes");
+        log.debug("Fetching all notes from master catalog");
         return notesRepository.findAll()
                 .stream()
                 .map(this::mapToDto)
@@ -80,7 +90,7 @@ public class NotesServiceImpl implements NotesService {
     public void delete(Long id) {
         log.warn("Permanently deleting note with id: {}", id);
         if (!notesRepository.existsById(id)) {
-            throw new EntityNotFoundException("Note not found with id: " + id);
+            throw new ResourceNotFoundException("Note not found with id: " + id);
         }
         notesRepository.deleteById(id);
     }
@@ -95,68 +105,102 @@ public class NotesServiceImpl implements NotesService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public List<NotesResponseForUserDto> getAllActiveForUser(Long id) {
-
-        User user = userRepository.getReferenceById(id);
-
-        Set<Long> purchasedNoteIds = user.getPurchasedNotes()
+    public List<NotesResponseDto> findByPaperId(Long paperId) {
+        return notesRepository.findByPaperId(paperId)
                 .stream()
-                .map(Notes::getId)
-                .collect(Collectors.toSet());
-
-        return notesRepository.findByActiveTrue()
-                .stream()
-                .map(note -> mapToUserDto(
-                        note,
-                        purchasedNoteIds.contains(note.getId())
-                ))
+                .map(this::mapToDtoForPublic)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<NotesResponseForUserDto> getAllActivePurchase(Long id) {
+    public List<NotesResponseForUserDto> getAllActiveForUser(Long userId,Long paperId) {
+        // Safe & blazing fast database lookup returning ONLY primitive IDs
+        Set<Long> purchasedNoteIds = purchaseRepository.findPurchasedNoteIdsByUserId(userId);
 
-        User user = userRepository.getReferenceById(id);
-
-        return notesRepository.findByActiveTrue()
+        // Fetch only active notes and map directly to DTOs
+        return notesRepository.findByPaperId(paperId)
                 .stream()
                 .map(note -> mapToUserDto(
                         note,
-                        true
+                        purchasedNoteIds.contains(note.getId()) // Fast O(1) Set lookup
                 ))
                 .toList();
     }
 
+    /**
+     * FIXED: This method now returns ONLY the notes that the user has actually paid for.
+     */
+    @Transactional(readOnly = true)
     @Override
+    public List<NotesResponseForUserDto> getAllActivePurchase(Long userId) {
+        log.debug("Fetching purchased library items for User ID: {}", userId);
+
+        // 1. Fetch only the notes from the purchase transaction history mapping directly
+        return purchaseRepository.findByUserIdAndPaymentStatusOrderByPurchaseDateDesc(userId, "SUCCESS")
+                .stream()
+                .map(purchase -> {
+                    Notes note = purchase.getNote();
+                    NotesResponseForUserDto dto = mapToUserDto(note, true);
+                    dto.setPdfUrl(note.getPdfUrl()); // Safe to inject since it's verified owned
+                    return dto;
+                }).toList();
+    }
+
+    /**
+     * FIXED: Swapped out unsafe lazy references for eager validation matching active scope requirements.
+     */
+    @Override
+    @Transactional(readOnly = true)
     public NotesResponseDto getActiveById(Long id) {
-        return mapToDtoForPublic(notesRepository.getReferenceById(id));
-    }
+        Notes note = notesRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Active note matching requested identity missing."));
 
+        if (!note.getActive()) {
+            throw new AccessDeniedException("This content profile has been archived by administrative policies.");
+        }
+        return mapToDtoForPublic(note);
+    }
 
     @Transactional(readOnly = true)
     @Override
     public NotesResponseForUserDto getActiveByIdForUser(Long notesId, Long userId) {
+        // Eagerly load target Note or fail safely with clear 404 Exception
+        Notes note = notesRepository.findById(notesId)
+                .orElseThrow(() -> new ResourceNotFoundException("Requested Note not found with ID: " + notesId));
 
-        User user=userRepository.getReferenceById(userId);
+        if (!note.getActive()) {
+            throw new AccessDeniedException("This content is no longer active or available.");
+        }
 
-        Set<Long> purchasedNoteIds = user.getPurchasedNotes()
-                .stream()
-                .map(Notes::getId)
-                .collect(Collectors.toSet());
+        // Perform single hyper-fast database flag lookup via indexing layer
+        boolean isPurchased = purchaseRepository.existsByUserIdAndNoteId(userId, notesId);
 
-       Notes notes= notesRepository.getReferenceById(notesId);
+        NotesResponseForUserDto dto = mapToUserDto(note, isPurchased);
 
-       if (purchasedNoteIds.contains(notes.getId())){
-           NotesResponseForUserDto dto=mapToUserDto(notes,true);
-           dto.setPdfUrl(notes.getPdfUrl());
-       }
-        return mapToUserDto(notes,false);
+        if (isPurchased) {
+            dto.setPdfUrl(note.getPdfUrl()); // Expose secure asset path strings
+        } else {
+            dto.setPdfUrl(null); // Structural mask masking downstream access
+        }
+
+        return dto;
     }
 
-
+    @Override
+    @Transactional
+    public PaymentInitiateResponseDTO PurchaseNotesById(Long userId, Long notesId){
+        // Safe findById tracking preventing cascading pipeline drops on dead inputs
+        Notes note = notesRepository.findById(notesId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot initiate purchase order on dead entity ID."));
+        try {
+            return paymentService.initiatePayment(new PaymentRequestDTO(userId, notesId, note.getPrice(), "INR"));
+        } catch (Exception e) {
+            log.error("Failed to generate payment voucher order context with payment provider: ", e);
+            throw new RuntimeException("Transaction pipeline execution failed to materialize authorization signature.", e);
+        }
+    }
 
     @Override
     @Transactional
@@ -182,7 +226,7 @@ public class NotesServiceImpl implements NotesService {
 
     private Notes getNoteOrThrow(Long id) {
         return notesRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Note not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
     }
 
     private Notes mapToEntity(NotesRequestDto dto) {
@@ -192,10 +236,9 @@ public class NotesServiceImpl implements NotesService {
                 .description(dto.getDescription())
                 .thumbnailUrl(dto.getThumbnailUrl())
                 .pdfUrl(dto.getPdfUrl())
-                .active(dto.getActive())
+                .active(dto.getActive() != null ? dto.getActive() : true)
                 .build();
 
-        // Attach Paper reference without fetching from DB (uses JPA Proxy)
         if (dto.getPaperId() != null) {
             notes.setPaper(paperRepository.getReferenceById(dto.getPaperId()));
         }
@@ -212,13 +255,47 @@ public class NotesServiceImpl implements NotesService {
                 .price(notes.getPrice())
                 .description(notes.getDescription())
                 .thumbnailUrl(notes.getThumbnailUrl())
-                .pdfUrl(null)
+                .pdfUrl(null) // Keep hidden on listing
                 .paperId(paper != null ? paper.getId() : null)
                 .paperName(paper != null ? paper.getName() : null)
                 .active(notes.getActive())
                 .createdAt(notes.getCreatedAt())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void grantManualAccessToUser(Long userId, Long notesId) {
+        log.info("Admin initiating manual access grant. User ID: {}, Note ID: {}", userId, notesId);
+
+        // 1. Verify the Note exists in your catalog
+        Notes note = notesRepository.findById(notesId)
+                .orElseThrow(() -> new ResourceNotFoundException("Target Note not found with ID: " + notesId));
+
+        // 2. Verify the target User exists in your system
+        User buyer = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Target User not found with ID: " + userId));
+
+        // 3. Idempotency Check: Prevent duplicate rows if they already own it
+        boolean alreadyOwned = purchaseRepository.existsByUserIdAndNoteId(userId, notesId);
+        if (alreadyOwned) {
+            log.info("User {} already has access to Note ID: {}. Skipping duplicate assignment.", buyer.getEmail(), notesId);
+            return;
+        }
+
+        // 4. Create an administrative audit trail record
+        Purchase manualAccessRecord = Purchase.builder()
+                .user(buyer)
+                .note(note)
+                .purchaseDate(LocalDateTime.now())
+                .amountPaid(BigDecimal.ZERO) // Set price to 0.00 for manual admin overrides
+                .paymentStatus("ADMIN_GRANTED") // Distinct status tracking for accounting audits
+                .build();
+
+        purchaseRepository.save(manualAccessRecord);
+        log.info("Successfully granted manual access to Note: '{}' for User: {}", note.getTitle(), buyer.getEmail());
+    }
+
     private NotesResponseDto mapToDtoForPublic(Notes notes) {
         Paper paper = notes.getPaper();
 
@@ -228,7 +305,7 @@ public class NotesServiceImpl implements NotesService {
                 .price(notes.getPrice())
                 .description(notes.getDescription())
                 .thumbnailUrl(notes.getThumbnailUrl())
-                .pdfUrl(null)
+                .pdfUrl(null) // Safe default layout wrapper protecting core assets
                 .paperId(paper != null ? paper.getId() : null)
                 .paperName(paper != null ? paper.getName() : null)
                 .active(notes.getActive())
@@ -237,6 +314,7 @@ public class NotesServiceImpl implements NotesService {
     }
 
     private NotesResponseForUserDto mapToUserDto(Notes notes, boolean isPurchase) {
+        Paper paper = notes.getPaper(); // Extracted for clean null check handling
 
         return NotesResponseForUserDto.builder()
                 .id(notes.getId())
@@ -244,9 +322,9 @@ public class NotesServiceImpl implements NotesService {
                 .price(notes.getPrice())
                 .description(notes.getDescription())
                 .thumbnailUrl(notes.getThumbnailUrl())
-                .pdfUrl(null)
-                .paperId(notes.getPaper().getId())
-                .paperName(notes.getPaper().getName())
+                .pdfUrl(null) // Handled dynamically outside inside explicit controllers
+                .paperId(paper != null ? paper.getId() : null)   // ✅ FIXED: Now Null-safe!
+                .paperName(paper != null ? paper.getName() : null) // ✅ FIXED: Now Null-safe!
                 .isPurchase(isPurchase)
                 .createdAt(notes.getCreatedAt())
                 .build();

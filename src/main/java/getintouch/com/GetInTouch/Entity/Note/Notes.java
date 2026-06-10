@@ -2,13 +2,16 @@ package getintouch.com.GetInTouch.Entity.Note;
 
 
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
+import getintouch.com.GetInTouch.Entity.Razorpay.Payment;
 import getintouch.com.GetInTouch.Entity.User.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -49,13 +52,19 @@ public class Notes {
     @JoinColumn(name = "paper_id", nullable = false)
     private Paper paper;
 
-    @ManyToMany(mappedBy = "purchasedNotes", fetch = FetchType.LAZY)
-    @Builder.Default // Ensures Builder doesn't overwrite the initialization if using Lombok Builder
-    private Set<User> buyers = new HashSet<>();
-
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
+
+    // CHANGED: Replaced @ManyToMany with @OneToMany pointing to your Purchase tracking table
+    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Purchase> salesHistory = new ArrayList<>();
+
+    // OPTIONAL: Track payments linked directly to this note
+    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Payment> payments = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

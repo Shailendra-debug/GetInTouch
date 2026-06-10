@@ -62,6 +62,7 @@ public class SecurityConfig {
 
                     // ✅ Public APIs
                     .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
 
                     // ✅ CORS
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.Entity.Quiz;
 
 import getintouch.com.GetInTouch.Entity.Note.Notes;
+import getintouch.com.GetInTouch.Entity.Razorpay.Payment;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -68,6 +69,7 @@ public class Paper {
     )
     @Builder.Default
     private List<Quiz> quizzes = new ArrayList<>();
+
 
     @PrePersist
     public void onCreate() {

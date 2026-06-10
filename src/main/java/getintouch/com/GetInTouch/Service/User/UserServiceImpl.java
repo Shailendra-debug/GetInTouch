@@ -3,7 +3,9 @@ package getintouch.com.GetInTouch.Service.User;
 import getintouch.com.GetInTouch.Configuration.PasswordConfig;
 import getintouch.com.GetInTouch.DTO.Auth.ResetPasswordRequestDto;
 import getintouch.com.GetInTouch.DTO.Auth.ResetPasswordResponseDto;
+import getintouch.com.GetInTouch.DTO.Payment.PaymentResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.*;
+import getintouch.com.GetInTouch.Entity.Razorpay.Payment;
 import getintouch.com.GetInTouch.Entity.User.PasswordResetOtp;
 import getintouch.com.GetInTouch.Entity.User.RegisterUser;
 import getintouch.com.GetInTouch.Entity.User.Role;
@@ -12,6 +14,7 @@ import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.UserMapper;
 import getintouch.com.GetInTouch.Repository.PasswordResetOtpRepository;
+import getintouch.com.GetInTouch.Repository.PaymentRepository;
 import getintouch.com.GetInTouch.Repository.RegisterUserRepository;
 import getintouch.com.GetInTouch.Repository.UserRepository;
 import getintouch.com.GetInTouch.Service.Auth.EmailService;
@@ -39,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final OtpUtil otpUtil;
     private final EmailService emailService;
     private final RegisterUserRepository registerUserRepository;
+    private final PaymentRepository paymentRepository;
 
     /* ---------- CREATE ---------- */
 
@@ -253,6 +257,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toDto(saveUser);
     }
 
+
     private UserResponseDto saveUser(RegisterVerifyOtpRequestDto request) {
 
         RegisterUser user = registerUserRepository.findByEmail(request.getEmail())
@@ -280,4 +285,5 @@ public class UserServiceImpl implements UserService {
 
         return UserMapper.toDto(savedUser);
     }
+
 }

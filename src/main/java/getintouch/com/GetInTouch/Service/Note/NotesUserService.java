@@ -33,24 +33,5 @@ public class NotesUserService {
                 .toList();
     }
 
-    // ✅ 2. All Notes + Status
-    public List<NotesUserResponse> getAllNotesWithStatus(Long userId) {
 
-        List<Long> approvedIds = orderRepository.findApprovedNoteIds(userId);
-
-        return notesRepository.findLatestActiveNotes()
-                .stream()
-                .map(note -> NotesUserResponse.builder()
-                        .id(note.getId())
-                        .title(note.getTitle())
-                        .price(note.getPrice().doubleValue())
-                        .thumbnailUrl(note.getThumbnailUrl())
-                        .approved(approvedIds.contains(note.getId()))
-                        .build())
-                .toList();
-    }
-    public Notes getApprovedNote(Long userId, Long orderId) {
-        return orderRepository.findApprovedNote(userId, orderId)
-                .orElseThrow(() -> new RuntimeException("Note not accessible"));
-    }
 }

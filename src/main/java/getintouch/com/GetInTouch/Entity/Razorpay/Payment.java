@@ -1,6 +1,8 @@
 package getintouch.com.GetInTouch.Entity.Razorpay;
 
 
+import getintouch.com.GetInTouch.Entity.Note.Notes;
+import getintouch.com.GetInTouch.Entity.User.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,11 +43,15 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus status;
 
-    @Column(nullable = false)
-    private Long userId;
+    // CHANGED: Instead of "Long userId", map it to the actual User entity
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private Long courseId;
+    // CHANGED: Linked directly to Notes instead of Paper
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "note_id", nullable = false)
+    private Notes note;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

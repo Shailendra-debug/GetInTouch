@@ -16,12 +16,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
-
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.purchasedNotes WHERE u.id = :id")
+    @Query("""
+            SELECT DISTINCT u
+            FROM User u
+            LEFT JOIN FETCH u.purchases p
+            LEFT JOIN FETCH p.note
+            WHERE u.id = :id
+            """)
     Optional<User> findByIdWithNotes(@Param("id") Long id);
 
-    // Fetch all users and their notes in 1 query
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.purchasedNotes")
+    @Query("""
+            SELECT DISTINCT u
+            FROM User u
+            LEFT JOIN FETCH u.purchases p
+            LEFT JOIN FETCH p.note
+            """)
     List<User> findAllWithNotes();
-
 }

@@ -1,4 +1,5 @@
 package getintouch.com.GetInTouch.Service.User;
+import getintouch.com.GetInTouch.DTO.Payment.PaymentResponseDto;
 import getintouch.com.GetInTouch.DTO.Users.*;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
@@ -39,5 +40,6 @@ public interface UserService {
 
 
     UserResponseDto UpdateProfileImageUrl(String url,Long id);
+
 
 }

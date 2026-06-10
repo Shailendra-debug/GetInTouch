@@ -26,11 +26,11 @@ public class PublicNotesController {
             summary = "Get All Active Notes",
             description = "Returns all active notes available for purchase"
     )
-    @GetMapping
-    public ResponseEntity<List<NotesResponseDto>> getAllActiveNotes() {
+    @GetMapping("/paper/{id}")
+    public ResponseEntity<List<NotesResponseDto>> getAllActiveNotes(@PathVariable Long paperId) {
 
         return ResponseEntity.ok(
-                notesService.getAllActive()
+                notesService.findByPaperId(paperId)
         );
     }
 

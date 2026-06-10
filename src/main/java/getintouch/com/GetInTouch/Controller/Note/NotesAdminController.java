@@ -124,4 +124,15 @@ public class NotesAdminController {
                 fileUploadService.uploadFile(file, "thumbnails")
         );
     }
+
+    @Operation(summary = "Admin: Grant Manual Access", description = "Allows administrative accounts to manually unlock notes for any user ID")
+    @PostMapping("/admin/notes/grant-access")
+    @PreAuthorize("hasRole('ADMIN')") // Strict Role-Based Access Control (RBAC) via JWT
+    public ResponseEntity<String> grantManualAccess(
+            @RequestParam Long userId,
+            @RequestParam Long notesId) {
+
+        service.grantManualAccessToUser(userId, notesId);
+        return ResponseEntity.ok("Access granted successfully to the user.");
+    }
 }

@@ -1,10 +1,8 @@
 package getintouch.com.GetInTouch.Controller.Note;
 
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
-import getintouch.com.GetInTouch.DTO.Note.NotesUserResponse;
-import getintouch.com.GetInTouch.Entity.Note.Notes;
+import getintouch.com.GetInTouch.DTO.Payment.PaymentInitiateResponseDTO;
 import getintouch.com.GetInTouch.Service.Note.NotesService;
-import getintouch.com.GetInTouch.Service.Note.NotesServiceImpl;
 import getintouch.com.GetInTouch.Service.Note.NotesUserService;
 import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,26 +36,34 @@ public class NotesUserController {
     }
 
     @Operation(summary = "Get all notes")
-    @GetMapping
-    public ResponseEntity<List<NotesResponseForUserDto>> getAll() {
+    @GetMapping("/paper/{id}")
+    public ResponseEntity<List<NotesResponseForUserDto>> getAll(@PathVariable Long paperId) {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
 
         return ResponseEntity.ok(
-                notesService.getAllActiveForUser(currentUser)
+                notesService.getAllActiveForUser(currentUser,paperId)
         );
     }
 
     @Operation(summary = "Get Purchase note by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Notes> getById(
+    public ResponseEntity<NotesResponseForUserDto> getById(
             @PathVariable Long id) {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
 
         return ResponseEntity.ok(
-                service.getApprovedNote(currentUser, id)
+                notesService.getActiveByIdForUser(id,currentUser)
         );
+    }
+
+    @Operation(summary = "Get Purchase note by ID")
+    @GetMapping("/purchase/{id}")
+    public ResponseEntity<PaymentInitiateResponseDTO> bayNores(
+            @PathVariable Long notesId) {
+        Long currentUser = SecurityUtil.getCurrentUserId();
+        return ResponseEntity.ok(notesService.PurchaseNotesById(currentUser,notesId));
     }
 
 
