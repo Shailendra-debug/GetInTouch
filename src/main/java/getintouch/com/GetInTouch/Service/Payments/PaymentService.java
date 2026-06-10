@@ -14,6 +14,7 @@ import getintouch.com.GetInTouch.Entity.Razorpay.Payment;
 import getintouch.com.GetInTouch.Entity.Razorpay.PaymentStatus;
 import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Repository.*;
+import getintouch.com.GetInTouch.Service.Auth.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class PaymentService {
     private final PurchaseRepository purchaseRepository;
     private final NotesRepository notesRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Value("${razorpay.key-secret}")
     private String keySecret;
@@ -71,90 +73,94 @@ public class PaymentService {
     }
     @Transactional
     public void verifyPayment(PaymentVerifyRequestDTO request) {
-        // 1. Prepare JSON object for Razorpay SDK verification
         JSONObject options = new JSONObject();
         options.put("razorpay_order_id", request.getRazorpayOrderId());
         options.put("razorpay_payment_id", request.getRazorpayPaymentId());
         options.put("razorpay_signature", request.getRazorpaySignature());
+
+        // 1. Fetch the payment record first so we can update it if something goes wrong
+        Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("Transaction Order matching reference not found"));
 
         try {
             // 2. Perform signature verification
             boolean isValid = Utils.verifyPaymentSignature(options, keySecret);
 
             if (!isValid) {
+                // Handle signature mismatch / potential tampering
+                handlePaymentFailure(payment, request.getRazorpayPaymentId(), "FAILED (Invalid Signature)");
                 throw new SecurityException("Fraud Alert: Invalid signature payload override attempted.");
             }
 
-            // 3. Fetch the pending transaction record
-            Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                    .orElseThrow(() -> new IllegalArgumentException("Transaction Order matching reference not found"));
-
-            // 4. Idempotency Check: Only update if it hasn't been handled by a Webhook already
+            // 3. Process Success (Only if it hasn't been handled yet)
             if (payment.getStatus() != PaymentStatus.SUCCESS) {
-
-                // Update payment tracking data
                 payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
                 payment.setRazorpaySignature(request.getRazorpaySignature());
                 payment.setStatus(PaymentStatus.SUCCESS);
                 paymentRepository.save(payment);
 
-                // 5. Grant access directly to the purchased Note
                 User buyer = payment.getUser();
-                Notes purchasedNote = payment.getNote(); // Extracted directly from the updated payment mapping
+                Notes purchasedNote = payment.getNote();
 
-                // Create a single purchase record for this specific note
                 Purchase userAccessRecord = new Purchase();
                 userAccessRecord.setUser(buyer);
                 userAccessRecord.setNote(purchasedNote);
                 userAccessRecord.setPurchaseDate(LocalDateTime.now());
                 userAccessRecord.setAmountPaid(payment.getAmount());
                 userAccessRecord.setPaymentStatus(PaymentStatus.SUCCESS.toString());
-
                 purchaseRepository.save(userAccessRecord);
 
-                System.out.println("Success! Note '" + purchasedNote.getTitle() + "' unlocked for user: " + buyer.getEmail());
+                // Send Success Email
+                emailService.sendPaymentStatusEmail(
+                        buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
+                        payment.getRazorpayPaymentId(), String.valueOf(payment.getAmount()), "SUCCESS"
+                );
             }
 
+        } catch (SecurityException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Secure payment signature validation routine failed aborted execution.", e);
+            // Fallback for any unexpected system runtime issues during verification
+            handlePaymentFailure(payment, request.getRazorpayPaymentId(), "FAILED");
+            throw new RuntimeException("Secure payment signature validation routine failed.", e);
         }
     }
 
+    // Private helper to clean up duplicate code for handling failures
+    private void handlePaymentFailure(Payment payment, String paymentId, String statusString) {
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            payment.setRazorpayPaymentId(paymentId);
+            payment.setStatus(PaymentStatus.FAILED); // Make sure PaymentStatus.FAILED enum exists
+            paymentRepository.save(payment);
+
+            User buyer = payment.getUser();
+            emailService.sendPaymentStatusEmail(
+                    buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
+                    paymentId, String.valueOf(payment.getAmount()), statusString
+            );
+        }
+    }
     @Transactional
     public void processWebhookPayload(String rawPayload) {
-        // 1. Parse the incoming string into a JSON Object
         JSONObject jsonEvent = new JSONObject(rawPayload);
         String eventType = jsonEvent.getString("event");
 
-        // 2. We only care about successful payment completions
-        if ("order.paid".equals(eventType)) {
+        // Extract common fields safely
+        JSONObject paymentEntity = jsonEvent.getJSONObject("payload")
+                .getJSONObject("payment")
+                .getJSONObject("entity");
 
-            // Extract the order sub-entity from the complex payload structure
-            JSONObject orderEntity = jsonEvent.getJSONObject("payload")
-                    .getJSONObject("order")
-                    .getJSONObject("entity");
+        String razorpayPaymentId = paymentEntity.getString("id");
+        String razorpayOrderId = paymentEntity.getString("order_id");
 
-            String razorpayOrderId = orderEntity.getString("id");
-
-            // Extract the payment ID as well for our audit records
-            // The paid event contains an array of payments; grab the first one
-            String razorpayPaymentId = jsonEvent.getJSONObject("payload")
-                    .getJSONObject("payment")
-                    .getJSONObject("entity")
-                    .getString("id");
-
-            // 3. Find the pending transaction row
+        // CASE A: Payment was successful
+        if ("order.paid".equals(eventType) || "payment.captured".equals(eventType)) {
             paymentRepository.findByRazorpayOrderId(razorpayOrderId).ifPresent(payment -> {
-
-                // Idempotency: Ensure we don't double-process if verification API already ran
                 if (payment.getStatus() != PaymentStatus.SUCCESS) {
-
-                    // Update payment status
                     payment.setRazorpayPaymentId(razorpayPaymentId);
                     payment.setStatus(PaymentStatus.SUCCESS);
                     paymentRepository.save(payment);
 
-                    // Grant access to the Note
                     User buyer = payment.getUser();
                     Notes purchasedNote = payment.getNote();
 
@@ -164,9 +170,31 @@ public class PaymentService {
                     userAccessRecord.setPurchaseDate(LocalDateTime.now());
                     userAccessRecord.setAmountPaid(payment.getAmount());
                     userAccessRecord.setPaymentStatus("SUCCESS");
-
                     purchaseRepository.save(userAccessRecord);
 
+                    emailService.sendPaymentStatusEmail(
+                            buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
+                            razorpayPaymentId, String.valueOf(payment.getAmount()), "SUCCESS"
+                    );
+                }
+            });
+        }
+
+        // CASE B: Payment explicitly failed on checkout
+        else if ("payment.failed".equals(eventType)) {
+            paymentRepository.findByRazorpayOrderId(razorpayOrderId).ifPresent(payment -> {
+                // Only update if it hasn't somehow already marked successful
+                if (payment.getStatus() == PaymentStatus.PENDING) {
+                    payment.setRazorpayPaymentId(razorpayPaymentId);
+                    payment.setStatus(PaymentStatus.FAILED);
+                    paymentRepository.save(payment);
+
+                    User buyer = payment.getUser();
+                    // Triggers template with red styling and ❌ subject automatically
+                    emailService.sendPaymentStatusEmail(
+                            buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
+                            razorpayPaymentId, String.valueOf(payment.getAmount()), "FAILED"
+                    );
                 }
             });
         }

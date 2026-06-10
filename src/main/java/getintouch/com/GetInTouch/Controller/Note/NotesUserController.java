@@ -3,7 +3,6 @@ package getintouch.com.GetInTouch.Controller.Note;
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
 import getintouch.com.GetInTouch.DTO.Payment.PaymentInitiateResponseDTO;
 import getintouch.com.GetInTouch.Service.Note.NotesService;
-import getintouch.com.GetInTouch.Service.Note.NotesUserService;
 import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +19,6 @@ import java.util.List;
 @PreAuthorize("isAuthenticated()")
 public class NotesUserController {
 
-    private final NotesUserService service;
 
     private final NotesService notesService;
 

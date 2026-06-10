@@ -8,12 +8,14 @@ import getintouch.com.GetInTouch.DTO.Payment.PaymentRequestDTO;
 import getintouch.com.GetInTouch.Entity.Note.Notes;
 import getintouch.com.GetInTouch.Entity.Note.Purchase;
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
+import getintouch.com.GetInTouch.Entity.Razorpay.PaymentStatus;
 import getintouch.com.GetInTouch.Entity.User.User;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Repository.NotesRepository;
 import getintouch.com.GetInTouch.Repository.PaperRepository;
 import getintouch.com.GetInTouch.Repository.PurchaseRepository;
 import getintouch.com.GetInTouch.Repository.UserRepository;
+import getintouch.com.GetInTouch.Service.Auth.EmailService;
 import getintouch.com.GetInTouch.Service.Payments.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class NotesServiceImpl implements NotesService {
     private final UserRepository userRepository;
     private final PaymentService paymentService;
     private final PurchaseRepository purchaseRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -97,19 +100,19 @@ public class NotesServiceImpl implements NotesService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotesResponseDto> getAllActive() {
+    public List<NotesResponseForUserDto> getAllActive() {
         log.debug("Fetching all active notes");
         return notesRepository.findByActiveTrue()
                 .stream()
-                .map(this::mapToDtoForPublic)
+                .map(notes -> mapToUserDto(notes,false))
                 .toList();
     }
 
     @Override
-    public List<NotesResponseDto> findByPaperId(Long paperId) {
-        return notesRepository.findByPaperId(paperId)
+    public List<NotesResponseForUserDto> findByPaperId(Long paperId) {
+        return notesRepository.findByActiveTrue()
                 .stream()
-                .map(this::mapToDtoForPublic)
+                .map(notes -> mapToUserDto(notes,false))
                 .toList();
     }
 
@@ -153,14 +156,14 @@ public class NotesServiceImpl implements NotesService {
      */
     @Override
     @Transactional(readOnly = true)
-    public NotesResponseDto getActiveById(Long id) {
+    public NotesResponseForUserDto getActiveById(Long id) {
         Notes note = notesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Active note matching requested identity missing."));
 
         if (!note.getActive()) {
             throw new AccessDeniedException("This content profile has been archived by administrative policies.");
         }
-        return mapToDtoForPublic(note);
+        return mapToUserDto(note,false);
     }
 
     @Transactional(readOnly = true)
@@ -293,6 +296,8 @@ public class NotesServiceImpl implements NotesService {
                 .build();
 
         purchaseRepository.save(manualAccessRecord);
+
+        emailService.sendPaymentStatusEmail(buyer.getEmail(), buyer.getFullName(), manualAccessRecord.getId().toString(),"By ADMIN","0", PaymentStatus.ADMIN_GRANTED.toString());
         log.info("Successfully granted manual access to Note: '{}' for User: {}", note.getTitle(), buyer.getEmail());
     }
 

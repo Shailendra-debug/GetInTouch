@@ -20,10 +20,10 @@ public interface NotesService {
 
     void delete(Long id);
 
-    List<NotesResponseDto> getAllActive();
+    List<NotesResponseForUserDto> getAllActive();
 
 
-    List<NotesResponseDto> findByPaperId(Long paperId);
+    List<NotesResponseForUserDto> findByPaperId(Long paperId);
 
     @Transactional(readOnly = true)
     List<NotesResponseForUserDto> getAllActiveForUser(Long id,Long paperId);
@@ -31,7 +31,7 @@ public interface NotesService {
     @Transactional(readOnly = true)
     List<NotesResponseForUserDto> getAllActivePurchase(Long id);
 
-    NotesResponseDto getActiveById(Long id);
+    NotesResponseForUserDto getActiveById(Long id);
 
     @Transactional(readOnly = true)
     NotesResponseForUserDto getActiveByIdForUser(Long notesId, Long userId);

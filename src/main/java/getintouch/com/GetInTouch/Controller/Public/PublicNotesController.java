@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.Controller.Public;
 
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseDto;
+import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
 import getintouch.com.GetInTouch.Service.Note.NotesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +28,7 @@ public class PublicNotesController {
             description = "Returns all active notes available for purchase"
     )
     @GetMapping("/paper/{id}")
-    public ResponseEntity<List<NotesResponseDto>> getAllActiveNotes(@PathVariable Long paperId) {
+    public ResponseEntity<List<NotesResponseForUserDto>> getAllActiveNotes(@PathVariable Long paperId) {
 
         return ResponseEntity.ok(
                 notesService.findByPaperId(paperId)
@@ -39,7 +40,7 @@ public class PublicNotesController {
             description = "Returns note details if note is active"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<NotesResponseDto> getNoteById(
+    public ResponseEntity<NotesResponseForUserDto> getNoteById(
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
