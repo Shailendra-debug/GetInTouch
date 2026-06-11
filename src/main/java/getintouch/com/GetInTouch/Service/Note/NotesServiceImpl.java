@@ -110,7 +110,7 @@ public class NotesServiceImpl implements NotesService {
 
     @Override
     public List<NotesResponseForUserDto> findByPaperId(Long paperId) {
-        return notesRepository.findByActiveTrue()
+        return notesRepository.findByPaperId(paperId)
                 .stream()
                 .map(notes -> mapToUserDto(notes,false))
                 .toList();
