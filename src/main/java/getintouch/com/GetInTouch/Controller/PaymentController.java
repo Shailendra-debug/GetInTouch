@@ -1,9 +1,7 @@
 package getintouch.com.GetInTouch.Controller;
 
-
 import getintouch.com.GetInTouch.DTO.Payment.PaymentResponseDto;
 import getintouch.com.GetInTouch.DTO.Payment.PaymentVerifyRequestDTO;
-import com.razorpay.Utils;
 import getintouch.com.GetInTouch.Service.Payments.PaymentService;
 import getintouch.com.GetInTouch.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +20,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Allows your frontend application to make API requests
+@CrossOrigin(origins = "*")
 @Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
 
-
-    @Value("${razorpay.webhook-secret}")
-    private String webhookSecret;
     /* =====================================================
        STEP 3: VERIFY PAYMENT (Frontend Success Callback)
        ===================================================== */
@@ -70,19 +64,16 @@ public class PaymentController {
             @RequestHeader("X-Razorpay-Signature") String razorpaySignature) {
 
         try {
-            // 1. Verify that this payload actually came from Razorpay using your secret key
-            boolean isValid = Utils.verifyWebhookSignature(signaturePayload, razorpaySignature, webhookSecret);
-            if (!isValid) {
-                log.warn("Invalid webhook signature received! Unauthorized attempt.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Signature");
-            }
+            // Verification logic has been delegated fully to the transactional service layer
+            // to ensure consistency and prevent signature-override bypasses.
+            paymentService.processWebhookPayload(signaturePayload, razorpaySignature);
 
-            // 2. Delegate the webhook payload processing to your service layer
-            paymentService.processWebhookPayload(signaturePayload);
-
-            // 3. Always return 200 OK immediately to stop Razorpay from retrying the hook
+            // Always return 200 OK immediately to stop Razorpay from retrying the hook
             return ResponseEntity.ok("Webhook Received");
 
+        } catch (SecurityException e) {
+            log.warn("Unauthorized webhook payload threat detected: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Signature");
         } catch (Exception e) {
             log.error("Error occurred while processing Razorpay webhook event data", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Processing Failed");
@@ -99,7 +90,6 @@ public class PaymentController {
     })
     @GetMapping("/my-payments")
     public ResponseEntity<List<PaymentResponseDto>> getMyPayments() {
-
         Long currentUser = SecurityUtil.getCurrentUserId();
         return ResponseEntity.ok(
                 paymentService.getAllPaymentsByUser(currentUser)
@@ -108,20 +98,27 @@ public class PaymentController {
 
     @Operation(
             summary = "Get Payment By ID",
-            description = "Returns a payment using its database ID."
+            description = "Returns a payment using its database ID if it belongs to the authenticated user."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Payment found"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not your payment record"),
             @ApiResponse(responseCode = "404", description = "Payment not found")
     })
     @GetMapping("/my-payments/{id}")
-    public ResponseEntity<PaymentResponseDto> getPaymentById(
+    public ResponseEntity<?> getPaymentById(
             @Parameter(description = "Payment ID", example = "1")
             @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                paymentService.getAllPaymentsById(id)
-        );
-    }
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        PaymentResponseDto payment = paymentService.getAllPaymentsById(id);
 
+        // Security Guardrail: Prevent cross-user data scraping
+        if (!payment.getUserId().equals(currentUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access Denied: You do not have permission to view this transaction.");
+        }
+
+        return ResponseEntity.ok(payment);
+    }
 }

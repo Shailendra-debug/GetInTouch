@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -39,12 +38,13 @@ public class PaymentService {
     @Value("${razorpay.key-secret}")
     private String keySecret;
 
+    @Value("${razorpay.webhook-secret}") // Separate secret configured in Razorpay Dashboard
+    private String webhookSecret;
+
     @Transactional
     public PaymentInitiateResponseDTO initiatePayment(PaymentRequestDTO request) throws Exception {
-        // 1. Convert Rupees to Paise (multiply by 100)
         int amountInPaise = request.getAmount().multiply(new BigDecimal("100")).intValue();
 
-        // 2. Tell Razorpay to create an order
         JSONObject orderRequest = new JSONObject();
         orderRequest.put("amount", amountInPaise);
         orderRequest.put("currency", request.getCurrency());
@@ -53,24 +53,23 @@ public class PaymentService {
         Order razorpayOrder = razorpayClient.orders.create(orderRequest);
         String razorpayOrderId = razorpayOrder.get("id");
 
-        // 3. Get lightweight proxy references for our relationships
         User userProxy = userRepository.getReferenceById(request.getUserId());
-        Notes noteProxy = notesRepository.getReferenceById(request.getNotesId()); // Fetch Notes proxy reference
+        Notes noteProxy = notesRepository.getReferenceById(request.getNotesId());
 
-        // 4. Save payment record in DB as PENDING
         Payment payment = Payment.builder()
                 .razorpayOrderId(razorpayOrderId)
                 .amount(request.getAmount())
                 .currency(request.getCurrency())
                 .status(PaymentStatus.PENDING)
-                .user(userProxy) // Set the user mapping
-                .note(noteProxy) // Set the note mapping directly
+                .user(userProxy)
+                .note(noteProxy)
                 .build();
 
         paymentRepository.save(payment);
 
         return new PaymentInitiateResponseDTO(razorpayOrderId, amountInPaise, request.getCurrency());
     }
+
     @Transactional
     public void verifyPayment(PaymentVerifyRequestDTO request) {
         JSONObject options = new JSONObject();
@@ -78,59 +77,89 @@ public class PaymentService {
         options.put("razorpay_payment_id", request.getRazorpayPaymentId());
         options.put("razorpay_signature", request.getRazorpaySignature());
 
-        // 1. Fetch the payment record first so we can update it if something goes wrong
-        Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
+        // 1. Lock the row immediately to prevent concurrent webhook conflicts
+        Payment payment = paymentRepository.findByRazorpayOrderIdForUpdate(request.getRazorpayOrderId())
                 .orElseThrow(() -> new IllegalArgumentException("Transaction Order matching reference not found"));
 
         try {
-            // 2. Perform signature verification
             boolean isValid = Utils.verifyPaymentSignature(options, keySecret);
-
             if (!isValid) {
-                // Handle signature mismatch / potential tampering
                 handlePaymentFailure(payment, request.getRazorpayPaymentId(), "FAILED (Invalid Signature)");
                 throw new SecurityException("Fraud Alert: Invalid signature payload override attempted.");
             }
 
-            // 3. Process Success (Only if it hasn't been handled yet)
-            if (payment.getStatus() != PaymentStatus.SUCCESS) {
-                payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
-                payment.setRazorpaySignature(request.getRazorpaySignature());
-                payment.setStatus(PaymentStatus.SUCCESS);
-                paymentRepository.save(payment);
-
-                User buyer = payment.getUser();
-                Notes purchasedNote = payment.getNote();
-
-                Purchase userAccessRecord = new Purchase();
-                userAccessRecord.setUser(buyer);
-                userAccessRecord.setNote(purchasedNote);
-                userAccessRecord.setPurchaseDate(LocalDateTime.now());
-                userAccessRecord.setAmountPaid(payment.getAmount());
-                userAccessRecord.setPaymentStatus(PaymentStatus.SUCCESS.toString());
-                purchaseRepository.save(userAccessRecord);
-
-                // Send Success Email
-                emailService.sendPaymentStatusEmail(
-                        buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
-                        payment.getRazorpayPaymentId(), String.valueOf(payment.getAmount()), "SUCCESS"
-                );
-            }
+            fulfillPayment(payment, request.getRazorpayPaymentId());
 
         } catch (SecurityException e) {
             throw e;
         } catch (Exception e) {
-            // Fallback for any unexpected system runtime issues during verification
             handlePaymentFailure(payment, request.getRazorpayPaymentId(), "FAILED");
             throw new RuntimeException("Secure payment signature validation routine failed.", e);
         }
     }
 
-    // Private helper to clean up duplicate code for handling failures
+    @Transactional
+    public void processWebhookPayload(String rawPayload, String signatureHeader) {
+        try {
+            // 1. CRITICAL: Verify webhook signature before processing
+            boolean isValidWebhook = Utils.verifyWebhookSignature(rawPayload, signatureHeader, webhookSecret);
+            if (!isValidWebhook) {
+                throw new SecurityException("Invalid webhook signature threat detected.");
+            }
+
+            JSONObject jsonEvent = new JSONObject(rawPayload);
+            String eventType = jsonEvent.getString("event");
+
+            JSONObject paymentEntity = jsonEvent.getJSONObject("payload")
+                    .getJSONObject("payment")
+                    .getJSONObject("entity");
+
+            String razorpayPaymentId = paymentEntity.getString("id");
+            String razorpayOrderId = paymentEntity.getString("order_id");
+
+            // 2. Lock the row to isolate processing logic safely
+            paymentRepository.findByRazorpayOrderIdForUpdate(razorpayOrderId).ifPresent(payment -> {
+                if ("order.paid".equals(eventType) || "payment.captured".equals(eventType)) {
+                    fulfillPayment(payment, razorpayPaymentId);
+                } else if ("payment.failed".equals(eventType)) {
+                    handlePaymentFailure(payment, razorpayPaymentId, "FAILED");
+                }
+            });
+
+        } catch (Exception e) {
+            throw new RuntimeException("Webhook orchestration failure", e);
+        }
+    }
+
+    // Isolated Fulfillment logic to prevent boilerplate copy-pasting
+    private void fulfillPayment(Payment payment, String razorpayPaymentId) {
+        if (payment.getStatus() != PaymentStatus.SUCCESS) {
+            payment.setRazorpayPaymentId(razorpayPaymentId);
+            payment.setStatus(PaymentStatus.SUCCESS);
+            paymentRepository.save(payment);
+
+            User buyer = payment.getUser();
+            Notes purchasedNote = payment.getNote();
+
+            Purchase userAccessRecord = new Purchase();
+            userAccessRecord.setUser(buyer);
+            userAccessRecord.setNote(purchasedNote);
+            userAccessRecord.setPurchaseDate(LocalDateTime.now());
+            userAccessRecord.setAmountPaid(payment.getAmount());
+            userAccessRecord.setPaymentStatus("SUCCESS");
+            purchaseRepository.save(userAccessRecord);
+
+            emailService.sendPaymentStatusEmail(
+                    buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
+                    razorpayPaymentId, String.valueOf(payment.getAmount()), "SUCCESS"
+            );
+        }
+    }
+
     private void handlePaymentFailure(Payment payment, String paymentId, String statusString) {
         if (payment.getStatus() == PaymentStatus.PENDING) {
             payment.setRazorpayPaymentId(paymentId);
-            payment.setStatus(PaymentStatus.FAILED); // Make sure PaymentStatus.FAILED enum exists
+            payment.setStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
 
             User buyer = payment.getUser();
@@ -140,74 +169,21 @@ public class PaymentService {
             );
         }
     }
-    @Transactional
-    public void processWebhookPayload(String rawPayload) {
-        JSONObject jsonEvent = new JSONObject(rawPayload);
-        String eventType = jsonEvent.getString("event");
 
-        // Extract common fields safely
-        JSONObject paymentEntity = jsonEvent.getJSONObject("payload")
-                .getJSONObject("payment")
-                .getJSONObject("entity");
-
-        String razorpayPaymentId = paymentEntity.getString("id");
-        String razorpayOrderId = paymentEntity.getString("order_id");
-
-        // CASE A: Payment was successful
-        if ("order.paid".equals(eventType) || "payment.captured".equals(eventType)) {
-            paymentRepository.findByRazorpayOrderId(razorpayOrderId).ifPresent(payment -> {
-                if (payment.getStatus() != PaymentStatus.SUCCESS) {
-                    payment.setRazorpayPaymentId(razorpayPaymentId);
-                    payment.setStatus(PaymentStatus.SUCCESS);
-                    paymentRepository.save(payment);
-
-                    User buyer = payment.getUser();
-                    Notes purchasedNote = payment.getNote();
-
-                    Purchase userAccessRecord = new Purchase();
-                    userAccessRecord.setUser(buyer);
-                    userAccessRecord.setNote(purchasedNote);
-                    userAccessRecord.setPurchaseDate(LocalDateTime.now());
-                    userAccessRecord.setAmountPaid(payment.getAmount());
-                    userAccessRecord.setPaymentStatus("SUCCESS");
-                    purchaseRepository.save(userAccessRecord);
-
-                    emailService.sendPaymentStatusEmail(
-                            buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
-                            razorpayPaymentId, String.valueOf(payment.getAmount()), "SUCCESS"
-                    );
-                }
-            });
-        }
-
-        // CASE B: Payment explicitly failed on checkout
-        else if ("payment.failed".equals(eventType)) {
-            paymentRepository.findByRazorpayOrderId(razorpayOrderId).ifPresent(payment -> {
-                // Only update if it hasn't somehow already marked successful
-                if (payment.getStatus() == PaymentStatus.PENDING) {
-                    payment.setRazorpayPaymentId(razorpayPaymentId);
-                    payment.setStatus(PaymentStatus.FAILED);
-                    paymentRepository.save(payment);
-
-                    User buyer = payment.getUser();
-                    // Triggers template with red styling and ❌ subject automatically
-                    emailService.sendPaymentStatusEmail(
-                            buyer.getEmail(), buyer.getFullName(), payment.getRazorpayOrderId(),
-                            razorpayPaymentId, String.valueOf(payment.getAmount()), "FAILED"
-                    );
-                }
-            });
-        }
-    }
-
+    @Transactional(readOnly = true)
     public List<PaymentResponseDto> getAllPaymentsByUser(Long usrId) {
-
-        return paymentRepository.findByUserId(usrId).stream().map(this::toResponseDto).toList();
+        // Uses the JOIN FETCH query version to avoid N+1 issues
+        return paymentRepository.findByUserIdWithRelationships(usrId).stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
-
+    @Transactional(readOnly = true)
     public PaymentResponseDto getAllPaymentsById(Long id) {
-        return toResponseDto(paymentRepository.getReferenceById(id));
+        // Fetching directly via findById to ensure parameters map smoothly out of proxies
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found"));
+        return toResponseDto(payment);
     }
 
     public PaymentResponseDto toResponseDto(Payment payment) {
@@ -226,5 +202,4 @@ public class PaymentService {
                 .updatedAt(payment.getUpdatedAt())
                 .build();
     }
-
 }
