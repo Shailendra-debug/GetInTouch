@@ -201,7 +201,7 @@ public class NotesServiceImpl implements NotesService {
             return paymentService.initiatePayment(new PaymentRequestDTO(userId, notesId, note.getPrice(), "INR"));
         } catch (Exception e) {
             log.error("Failed to generate payment voucher order context with payment provider: ", e);
-            throw new RuntimeException("Transaction pipeline execution failed to materialize authorization signature.", e);
+            throw new RuntimeException(e+"Transaction pipeline execution failed to materialize authorization signature.", e);
         }
     }
 
