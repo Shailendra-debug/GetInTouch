@@ -57,7 +57,7 @@ public class NotesUserController {
     }
 
     @Operation(summary = "Get Purchase note by ID")
-    @GetMapping("/purchase/{id}")
+    @GetMapping("/purchase/{notesId}")
     public ResponseEntity<PaymentInitiateResponseDTO> bayNores(
             @PathVariable Long notesId) {
         Long currentUser = SecurityUtil.getCurrentUserId();
