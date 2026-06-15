@@ -34,7 +34,7 @@ public class NotesUserController {
     }
 
     @Operation(summary = "Get all notes")
-    @GetMapping("/paper/{id}")
+    @GetMapping("/paper/{paperId}")
     public ResponseEntity<List<NotesResponseForUserDto>> getAll(@PathVariable Long paperId) {
 
         Long currentUser = SecurityUtil.getCurrentUserId();
