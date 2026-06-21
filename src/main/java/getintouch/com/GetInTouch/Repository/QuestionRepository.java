@@ -136,4 +136,11 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * This allows the same generic question (e.g., "What is the capital?") to exist in different chapters.
      */
     boolean existsByQuestionAndChapterId(String question, Long chapterId);
+
+    @EntityGraph(attributePaths = {"chapter"})
+    List<Question> findByIdIn(List<Long> ids);
+
+    @EntityGraph(attributePaths = {"chapter"})
+    @Query("SELECT q FROM Question q")
+    List<Question> findAllWithChapter();
 }

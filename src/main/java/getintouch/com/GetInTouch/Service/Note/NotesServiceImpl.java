@@ -61,7 +61,6 @@ public class NotesServiceImpl implements NotesService {
         notes.setPrice(dto.getPrice());
         notes.setDescription(dto.getDescription());
         notes.setThumbnailUrl(dto.getThumbnailUrl());
-        notes.setPdfUrl(dto.getPdfUrl());
         notes.setActive(dto.getActive());
 
         if (dto.getPaperId() != null) {

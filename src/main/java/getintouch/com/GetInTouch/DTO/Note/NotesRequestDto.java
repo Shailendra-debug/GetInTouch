@@ -24,7 +24,6 @@ public class NotesRequestDto {
 
     private String thumbnailUrl;
 
-    @NotBlank(message = "PDF URL is required")
     private String pdfUrl;
 
     @NotNull(message = "Paper ID is required")

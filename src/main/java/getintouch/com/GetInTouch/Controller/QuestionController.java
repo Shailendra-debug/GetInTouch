@@ -4,6 +4,7 @@ import getintouch.com.GetInTouch.DTO.Question.QuestionCreateRequestDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionResponseDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionUpdateRequestDto;
 import getintouch.com.GetInTouch.Entity.Quiz.Course;
+import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.Question.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,15 +27,19 @@ import java.util.List;
 @Tag(name = "Question Management", description = "Endpoints for creating, managing, and randomly generating quiz questions")
 
 @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Questions created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed"),
-        @ApiResponse(responseCode = "404", description = "Chapter not found")
+        @ApiResponse(responseCode = "200", description = "Success"),
+        @ApiResponse(responseCode = "201", description = "Created"),
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Resource Not Found"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error")
 })
 
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final FileUploadService uploadService;
 
     // =========================================================================
     // WRITE OPERATIONS (Admins Only)
@@ -165,5 +171,17 @@ public class QuestionController {
                 questionService.createListOfQus(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(
+            summary = "Upload Image",
+            description = "Upload an image file and return its URL"
+    )
+    @PostMapping("/img")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createSlider(
+            @RequestParam MultipartFile file) {
+        String url=uploadService.uploadFile(file,"paper");
+        return ResponseEntity.ok(url);
     }
 }

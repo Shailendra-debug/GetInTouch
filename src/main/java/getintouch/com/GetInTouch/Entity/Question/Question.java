@@ -44,8 +44,7 @@ public class Question {
             name = "question_options",
             joinColumns = @JoinColumn(name = "question_id")
     )
-    @Column(name = "option_text", nullable = false)
-    private List<String> options;
+    private List<Option> options;
 
     /* ---------- CORRECT ANSWER INDEXES ---------- */
     @ElementCollection
@@ -55,6 +54,9 @@ public class Question {
     )
     @Column(name = "correct_index", nullable = false)
     private List<Integer> correct;
+
+    private boolean imageQuestion;
+    private String imageUrl;
 
     @Column(length = 1000)
     private String explanation;

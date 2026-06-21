@@ -127,7 +127,7 @@ public class PaperController {
     @Operation(summary = "Create Thumbnail", description = "Create a new Thumbnail For Papers (ADMIN only)")
     @ApiResponse(responseCode = "201", description = "Thumbnail created successfully")
     @ApiResponse(responseCode = "403", description = "Forbidden - Only ADMIN allowed")
-    @PostMapping("thumbnail")
+    @PostMapping("/thumbnail")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createSlider(
             @RequestParam MultipartFile file) {

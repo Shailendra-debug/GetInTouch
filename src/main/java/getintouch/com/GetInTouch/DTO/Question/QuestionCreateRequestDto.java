@@ -2,6 +2,7 @@ package getintouch.com.GetInTouch.DTO.Question;
 
 import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import getintouch.com.GetInTouch.Entity.Question.Difficulty;
+import getintouch.com.GetInTouch.Entity.Question.Option;
 import getintouch.com.GetInTouch.Entity.Question.QuestionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,10 +23,13 @@ public class QuestionCreateRequestDto {
     private String question;
 
     @NotEmpty
-    private List<String> options;
+    private List<Option> options;
 
     @NotEmpty
     private List<Integer> correct;
+
+    private Boolean imageQuestion;
+    private String imageUrl;
 
     private String explanation;
 

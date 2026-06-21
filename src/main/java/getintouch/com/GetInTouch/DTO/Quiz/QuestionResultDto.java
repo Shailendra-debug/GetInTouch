@@ -1,6 +1,7 @@
 package getintouch.com.GetInTouch.DTO.Quiz;
 
 
+import getintouch.com.GetInTouch.Entity.Question.Option;
 import lombok.*;
 
 import java.util.List;
@@ -11,7 +12,8 @@ public class QuestionResultDto {
 
     private Long questionId;
     private String question;
-    private List<String> options;
+
+    private List<Option> options;
 
     private List<Integer> selectedIndexes;
     private List<Integer> correctIndexes;

@@ -2,6 +2,7 @@ package getintouch.com.GetInTouch.DTO.Question;
 
 
 import getintouch.com.GetInTouch.Entity.Question.Difficulty;
+import getintouch.com.GetInTouch.Entity.Question.Option;
 import getintouch.com.GetInTouch.Entity.Question.QuestionType;
 import lombok.*;
 
@@ -15,8 +16,10 @@ import java.util.List;
 public class QuestionUpdateRequestDto {
 
     private String question;
-    private List<String> options;
+    private List<Option> options;
     private List<Integer> correct;
+    private Boolean imageQuestion;
+    private String imageUrl;
     private String explanation;
     private QuestionType type;
     private Difficulty difficulty;

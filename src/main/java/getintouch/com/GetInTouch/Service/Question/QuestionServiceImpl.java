@@ -3,14 +3,13 @@ package getintouch.com.GetInTouch.Service.Question;
 import getintouch.com.GetInTouch.DTO.Question.QuestionCreateRequestDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionResponseDto;
 import getintouch.com.GetInTouch.DTO.Question.QuestionUpdateRequestDto;
+import getintouch.com.GetInTouch.Entity.Question.Option;
 import getintouch.com.GetInTouch.Entity.Question.Question;
 import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
-import getintouch.com.GetInTouch.Entity.Quiz.Course;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.QuestionMapper;
 import getintouch.com.GetInTouch.Repository.ChapterRepository;
-import getintouch.com.GetInTouch.Repository.CourseRepository;
 import getintouch.com.GetInTouch.Repository.PaperRepository;
 import getintouch.com.GetInTouch.Repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,39 +60,79 @@ public class QuestionServiceImpl implements QuestionService {
         Question saved = questionRepository.save(question);
         return mapToDtoWithChapter(saved, chapter);
     }
-
     @Override
-    public List<QuestionResponseDto> createListOfQus(List<QuestionCreateRequestDto> request) {
+    @Transactional
+    public List<QuestionResponseDto> createListOfQus(
+            List<QuestionCreateRequestDto> request
+    ) {
+
         Set<Long> chapterIds = request.stream()
                 .map(QuestionCreateRequestDto::getChapterId)
                 .collect(Collectors.toSet());
 
-        Map<Long, Chapter> chapterMap = chapterRepository.findAllById(chapterIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        Chapter::getId,
-                        Function.identity()
-                ));
+        Map<Long, Chapter> chapterMap =
+                chapterRepository.findAllById(chapterIds)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Chapter::getId,
+                                Function.identity()
+                        ));
 
-        List<Question>questionList=new ArrayList<>();
+        List<Question> questionList = new ArrayList<>();
 
-        for (QuestionCreateRequestDto dto:request){
-            if (!chapterMap.containsKey(dto.getChapterId()))
-                throw new ResourceNotFoundException("Chapter not found id " + dto.getChapterId());
+        for (QuestionCreateRequestDto dto : request) {
 
-            if (!chapterMap.get(dto.getChapterId()).getActive()) {
-                throw new BadRequestException("Cannot add questions to an inactive chapter.");
+            if (!chapterMap.containsKey(dto.getChapterId())) {
+                throw new ResourceNotFoundException(
+                        "Chapter not found id "
+                                + dto.getChapterId()
+                );
             }
 
-            Question question = questionMapper.toEntity(dto);
-            question.setChapter(chapterMap.get(dto.getChapterId()));
+            Chapter chapter =
+                    chapterMap.get(dto.getChapterId());
+
+            if (!chapter.getActive()) {
+                throw new BadRequestException(
+                        "Cannot add questions to an inactive chapter."
+                );
+            }
+
+            validateCorrectIndexes(
+                    dto.getOptions(),
+                    dto.getCorrect()
+            );
+
+            if (questionRepository.existsByQuestionAndChapterId(
+                    dto.getQuestion(),
+                    dto.getChapterId()
+            )) {
+
+                throw new BadRequestException(
+                        "Question already exists in chapter: "
+                                + dto.getQuestion()
+                );
+            }
+
+            Question question =
+                    questionMapper.toEntity(dto);
+
+            question.setChapter(chapter);
             question.setActive(true);
 
             questionList.add(question);
         }
-        List<Question>savedQus=questionRepository.saveAll(questionList);
 
-        return savedQus.stream().map(qus->mapToDtoWithChapter(qus,qus.getChapter())).toList();
+        List<Question> savedQuestions =
+                questionRepository.saveAll(questionList);
+
+        return savedQuestions.stream()
+                .map(q ->
+                        mapToDtoWithChapter(
+                                q,
+                                q.getChapter()
+                        ))
+                .toList();
     }
 
 
@@ -110,9 +149,14 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionResponseDto> getAll() {
-        return questionRepository.findAll()
+
+        return questionRepository.findAllWithChapter()
                 .stream()
-                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .map(question ->
+                        mapToDtoWithChapter(
+                                question,
+                                question.getChapter()
+                        ))
                 .toList();
     }
 
@@ -151,14 +195,28 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<QuestionResponseDto> generateRandomQuiz(Long chapterId, int limit) {
-        List<Long> randomIds = questionRepository.getRandomQuestionIds(chapterId, limit);
+    public List<QuestionResponseDto> generateRandomQuiz(
+            Long chapterId,
+            int limit
+    ) {
 
-        if (randomIds.isEmpty()) return Collections.emptyList();
+        List<Long> randomIds =
+                questionRepository.getRandomQuestionIds(
+                        chapterId,
+                        limit
+                );
 
-        return questionRepository.findAllById(randomIds)
+        if (randomIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return questionRepository.findByIdIn(randomIds)
                 .stream()
-                .map(question -> mapToDtoWithChapter(question, question.getChapter()))
+                .map(question ->
+                        mapToDtoWithChapter(
+                                question,
+                                question.getChapter()
+                        ))
                 .toList();
     }
 
@@ -171,29 +229,59 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
-    public QuestionResponseDto update(Long id, QuestionUpdateRequestDto request) {
-        Question question = questionRepository.findByIdWithChapter(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + id));
+    public QuestionResponseDto update(
+            Long id,
+            QuestionUpdateRequestDto request
+    ) {
 
-        if (request.getOptions() != null && request.getCorrect() != null) {
-            validateCorrectIndexes(request.getOptions(), request.getCorrect());
-        }
+        Question question =
+                questionRepository.findByIdWithChapter(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Question not found with id: " + id
+                                ));
+
+        validateCorrectIndexes(
+                request.getOptions() != null
+                        ? request.getOptions()
+                        : question.getOptions(),
+
+                request.getCorrect() != null
+                        ? request.getCorrect()
+                        : question.getCorrect()
+        );
 
         Chapter chapter = question.getChapter();
-        if (request.getChapterId() != null && !request.getChapterId().equals(chapter.getId())) {
-            chapter = chapterRepository.findById(request.getChapterId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Chapter not found id " + request.getChapterId()));
+
+        if (request.getChapterId() != null
+                && !request.getChapterId().equals(chapter.getId())) {
+
+            chapter = chapterRepository.findById(
+                            request.getChapterId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Chapter not found id "
+                                            + request.getChapterId()
+                            ));
 
             if (!chapter.getActive()) {
-                throw new BadRequestException("Cannot move question to an inactive chapter.");
+                throw new BadRequestException(
+                        "Cannot move question to an inactive chapter."
+                );
             }
+
             question.setChapter(chapter);
         }
 
         questionMapper.updateEntity(request, question);
-        Question updated = questionRepository.save(question);
 
-        return mapToDtoWithChapter(updated, chapter);
+        Question updated =
+                questionRepository.save(question);
+
+        return mapToDtoWithChapter(
+                updated,
+                chapter
+        );
     }
 
     /* ---------- DELETE & ADMIN ---------- */
@@ -241,18 +329,37 @@ public class QuestionServiceImpl implements QuestionService {
         return dto;
     }
 
-    private void validateCorrectIndexes(List<String> options, List<Integer> correctIndexes) {
+    private void validateCorrectIndexes(
+            List<Option> options,
+            List<Integer> correctIndexes
+    ) {
+
         if (options == null || options.isEmpty()) {
-            throw new BadRequestException("Options must not be empty");
+            throw new BadRequestException(
+                    "Options must not be empty"
+            );
         }
-        if (correctIndexes == null || correctIndexes.isEmpty()) {
-            throw new BadRequestException("Correct answer must be provided");
+
+        if (correctIndexes == null
+                || correctIndexes.isEmpty()) {
+
+            throw new BadRequestException(
+                    "Correct answer must be provided"
+            );
         }
 
         int size = options.size();
+
         for (Integer index : correctIndexes) {
-            if (index == null || index < 0 || index >= size) {
-                throw new BadRequestException("Correct answer index out of range: " + index);
+
+            if (index == null
+                    || index < 0
+                    || index >= size) {
+
+                throw new BadRequestException(
+                        "Correct answer index out of range: "
+                                + index
+                );
             }
         }
     }
