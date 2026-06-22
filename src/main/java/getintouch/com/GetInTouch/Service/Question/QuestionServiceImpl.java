@@ -324,6 +324,7 @@ public class QuestionServiceImpl implements QuestionService {
     private QuestionResponseDto mapToDtoWithChapter(Question question, Chapter chapter) {
         QuestionResponseDto dto = questionMapper.toDto(question);
         if (chapter != null) {
+            dto.setChapterId(chapter.getId());
             dto.setChapterName(chapter.getTitle());
         }
         return dto;

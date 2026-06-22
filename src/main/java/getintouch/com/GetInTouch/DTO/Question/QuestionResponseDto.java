@@ -27,6 +27,7 @@ public class QuestionResponseDto {
     private Difficulty difficulty;
     private Integer marks;
     private String chapterName;
+    private Long chapterId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
