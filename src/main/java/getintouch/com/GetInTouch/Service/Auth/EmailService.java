@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-
-    @Value("${RESEND_API_KEY}")
+    
+    @Value("${resend.api-key}")
     private String apiKey;
 
     private static final String FROM_EMAIL = "support@skushwaha.in";
