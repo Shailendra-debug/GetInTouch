@@ -1,9 +1,8 @@
 spring:
-
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://shuttle.proxy.rlwy.net:58750/railway
+    username: postgres
+    password: YnmaXzgxzKHdBSZptTvlfOqzIZhhSPcP
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -12,57 +11,66 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-
     hikari:
       maximum-pool-size: 3
       connection-timeout: 30000
-
-
 
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: 705304208528-lfi0pqo10b39kjg45atas4seq7v2mat5.apps.googleusercontent.com
+            client-secret: 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
             scope:
               - profile
               - email
               - openid
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: shailendrakushwaha732@gmail.com
+    password: vxdqcdwpsnzjpmpc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
-  port: ${SERVER_PORT}
+  port: 8080
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: qP3d9F7KcT8Rk6mX3Y1Y+7YxGk9Xc2M1VZpQ8Hn7Z0Q=
   refresh-token-cookie-name: RefreshToken
   cookie-http-only: true
   cookie-secure: false
   cookie-same-site: Lax
   refresh-ttl-seconds: 604800   # 7 days
 
-
 app:
   frontend:
-    url: ${FRONTEND_URL}
-
+    url: http://127.0.0.1:5500/index.html
   bootstrap:
     admin:
-      email: ${ADMIN_EMAIL}
-      password: ${ADMIN_PASSWORD}
+      email: admin@getintouch.com
+      password: Admin@123
 
 cloudflare:
   r2:
-    access-key: ${R2_ACCESS_KEY}
-    secret-key: ${R2_SECRET_KEY}
-    endpoint: ${R2_ENDPOINT}
-    bucket: ${R2_BUCKET}
-    public-url: ${R2_PUBLIC_URL}
+    access-key: fc08233668d4d28e264fabbd7794dde3
+    secret-key: 336fb0ce97d194d8ef99921a45a7a9a9ec7a278c07d760f7e870cc5373380f48
+    endpoint: https://9c03f45b237a9a6492c697a48e8a89c6.r2.cloudflarestorage.com
+    bucket: notes-storage
+    public-url: https://pub-c5e08c6c646b4558b5953f5cdc4aa730.r2.dev
 
+resend:
+  api-key: re_TxmxrL4z_81UTRk41LdnMWspaknnAVyzn
 
+# NOTE: You need to fill these or remove them if not used yet
 razorpay:
-  key-id: ${RAZORPAY_KEY_ID}
-  key-secret: ${RAZORPAY_KEY_SECRET}
-  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
-
+  key-id: rzp_live_SznYgNT22HpguZ
+  key-secret: soEVfADk14bpa3BGQjXg4K0a
+  webhook-secret: 2D>b<Z/11K$\rxF$h!32
