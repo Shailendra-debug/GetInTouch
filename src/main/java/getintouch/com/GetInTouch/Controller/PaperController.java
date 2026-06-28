@@ -71,6 +71,17 @@ public class PaperController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Deactivate a paper",
+            description = "Sets the paper active flag to false. Admin only."
+    )
+    public ResponseEntity<PaperResponseDTO> deactivatePaper(@PathVariable Long id) {
+        PaperResponseDTO response = paperService.deactivatePaper(id);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @Operation(summary = "Get all papers", description = "Fetches both active and inactive papers.")

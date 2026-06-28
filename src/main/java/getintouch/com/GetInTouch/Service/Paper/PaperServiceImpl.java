@@ -4,6 +4,7 @@ import getintouch.com.GetInTouch.DTO.Paper.PaperRequestDTO;
 import getintouch.com.GetInTouch.DTO.Paper.PaperResponseDTO;
 import getintouch.com.GetInTouch.Entity.Quiz.Course;
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
+import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.PaperMapper;
 import getintouch.com.GetInTouch.Repository.CourseRepository;
 import getintouch.com.GetInTouch.Repository.PaperRepository;
@@ -100,6 +101,17 @@ public class PaperServiceImpl implements PaperService {
                 paper,
                 paper.getCourse()
         );
+    }
+
+    @Override
+    public PaperResponseDTO deactivatePaper(Long id) {
+        Paper paper = paperRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Paper not found"));
+
+        paper.setActive(false);
+
+        Paper updatedPaper = paperRepository.save(paper);
+        return PaperMapper.toResponseDTO(updatedPaper,paper.getCourse());
     }
 
     @Override

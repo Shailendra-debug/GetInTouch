@@ -27,6 +27,8 @@ public interface PaperService {
             Long id
     );
 
+    PaperResponseDTO deactivatePaper(Long id);
+
     List<PaperResponseDTO> getAllPapers();
 
     // ================= USER =================
