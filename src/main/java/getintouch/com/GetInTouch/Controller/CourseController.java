@@ -110,12 +110,26 @@ public class CourseController {
     }
 
     @Operation(
-            summary = "Get All Courses (Admin)",
+            summary = "Deactivate Course",
+            description = "Deactivates an active course."
+    )
+//@SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<CourseResponseDTO> deactivateCourse(
+            @Parameter(description = "Course ID", example = "1")
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(courseService.deactivateCourse(id));
+    }
+
+    @Operation(
+            summary = "Get All Courses For Admin",
             description = "Returns all courses including inactive ones."
     )
     //@SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin")
+    @GetMapping()
     public ResponseEntity<List<CourseResponseDTO>> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
     }
@@ -126,7 +140,7 @@ public class CourseController {
             summary = "Get All Active Courses",
             description = "Returns all active courses ordered by course number."
     )
-    @GetMapping
+    @GetMapping("/active")
     public ResponseEntity<List<CourseResponseDTO>> getAllActiveCourses() {
         return ResponseEntity.ok(courseService.getAllActiveCourses());
     }

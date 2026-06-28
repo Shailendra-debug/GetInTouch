@@ -3,6 +3,7 @@ package getintouch.com.GetInTouch.Service.Course;
 import getintouch.com.GetInTouch.DTO.Course.CourseRequestDTO;
 import getintouch.com.GetInTouch.DTO.Course.CourseResponseDTO;
 import getintouch.com.GetInTouch.Entity.Quiz.Course;
+import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.CourseMapper;
 import getintouch.com.GetInTouch.Repository.CourseRepository;
 import jakarta.transaction.Transactional;
@@ -79,6 +80,16 @@ public class CourseServiceImpl implements CourseService {
 
         return CourseMapper.toResponseDTO(course);
     }
+    @Override
+    public CourseResponseDTO deactivateCourse(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+        course.setActive(false);
+
+        Course updatedCourse = courseRepository.save(course);
+        return CourseMapper.toResponseDTO(updatedCourse);
+    }
 
     @Override
     @Transactional()
@@ -107,7 +118,7 @@ public class CourseServiceImpl implements CourseService {
     public CourseResponseDTO getCourseById(Long id) {
 
         Course course = courseRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(() -> new RuntimeException("Course not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found."));
 
         return CourseMapper.toResponseDTO(course);
     }

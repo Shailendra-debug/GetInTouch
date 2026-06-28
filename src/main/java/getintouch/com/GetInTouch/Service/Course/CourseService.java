@@ -24,6 +24,8 @@ public interface CourseService {
 
     CourseResponseDTO activateCourse(Long id);
 
+    CourseResponseDTO deactivateCourse(Long id);
+
     List<CourseResponseDTO> getAllCourses();
 
     // ========== USER ==========
