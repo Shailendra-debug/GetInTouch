@@ -153,6 +153,19 @@ public class PaperServiceImpl implements PaperService {
                 .toList();
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaperResponseDTO> getAllInactivePapers() {
+        // 1. Fetch all inactive papers in a single query
+        List<Paper> inactivePapers = paperRepository.findByActiveFalseOrderByNameAsc();
+
+        // 2. Map entities to DTOs
+        return inactivePapers.stream()
+                .map(e -> PaperMapper.toResponseDTO(e, e.getCourse())) // Adjust based on your PaperMapper signature
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<PaperResponseDTO> getPapersByCourseId(Long courseId) {

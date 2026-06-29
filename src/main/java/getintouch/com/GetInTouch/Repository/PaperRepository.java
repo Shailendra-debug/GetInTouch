@@ -23,6 +23,9 @@ public interface PaperRepository extends JpaRepository<Paper, Long> {
     @EntityGraph(attributePaths = "course")
     List<Paper> findByActiveTrueOrderByPaperNumberAsc();
 
+    @EntityGraph(attributePaths = {"chapters"}) // Remove this line if you don't load chapters inside the mapper
+    List<Paper> findByActiveFalseOrderByNameAsc(); // Adjust sorting property (e.g., OrderByIdAsc) as needed
+
     @EntityGraph(attributePaths = "course")
     List<Paper> findByCourseIdOrderByPaperNumberAsc(Long courseId);
 

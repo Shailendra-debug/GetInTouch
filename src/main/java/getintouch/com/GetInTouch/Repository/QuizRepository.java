@@ -81,6 +81,8 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     @Query(value = "SELECT * FROM quizzes WHERE active = false", nativeQuery = true)
     List<Quiz> findAllDeactivatedQuizzes();
 
+    List<Quiz> findByActiveFalse();
+
     /**
      * Reactivates a soft-deleted quiz.
      * FIXED: Added clearAutomatically to prevent stale Hibernate cache.

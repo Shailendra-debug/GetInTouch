@@ -163,6 +163,18 @@ public class QuizServiceImpl implements QuizService {
         return getAllQuizzes(); // Handled automatically by @SQLRestriction
     }
 
+
+
+    @Override
+    @Transactional
+    public void deactivateQuiz(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+
+        quiz.setActive(false); // Flags it as soft-deleted / moved to trash bin
+        quizRepository.save(quiz);
+    }
+
     @Override
     public QuizResponseWithoutQuestionsDTO getQuizSummary(Long quizId) {
         Quiz quiz = quizRepository.findByIdWithChapter(quizId)

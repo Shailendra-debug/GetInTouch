@@ -162,6 +162,29 @@ public class QuestionServiceImpl implements QuestionService {
                 .toList();
     }
 
+    public List<QuestionResponseDto> getAllActiveQuestions() {
+        List<Question> activeQuestions = questionRepository.findByActiveTrue();
+        return activeQuestions.stream()
+                .map(question ->
+                        mapToDtoWithChapter(
+                                question,
+                                question.getChapter()
+                        ))
+                .toList();
+    }
+
+    // --- Inactive Questions Service ---
+    public List<QuestionResponseDto> getAllInactiveQuestions() {
+        List<Question> inactiveQuestions = questionRepository.findByActiveFalse();
+        return inactiveQuestions.stream()
+                .map(question ->
+                        mapToDtoWithChapter(
+                                question,
+                                question.getChapter()
+                        ))
+                .toList();
+    }
+
     /* ---------- ADVANCED FETCHING ---------- */
 
     @Override
@@ -310,8 +333,21 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public void activate(Long id) {
-        log.info("Reactivating Question ID: {}", id);
-        questionRepository.activateById(id);
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + id));
+
+        question.setActive(true);
+        questionRepository.save(question);
+    }
+
+    @Override
+    @Transactional
+    public void deactivate(Long id) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + id));
+
+        question.setActive(false); // Flags it as soft-deleted
+        questionRepository.save(question);
     }
 
     @Override

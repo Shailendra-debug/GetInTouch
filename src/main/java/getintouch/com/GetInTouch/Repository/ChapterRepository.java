@@ -33,6 +33,9 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     List<Chapter> findAllByOrderByChapterNumberAsc();
 
     @EntityGraph(attributePaths = {"paper"})
+    List<Chapter> findByActiveTrueOrderByChapterNumberAsc();
+
+    @EntityGraph(attributePaths = {"paper"})
     List<Chapter> findByPaperIdOrderByChapterNumberAsc(Long paperId);
 
     @EntityGraph(attributePaths = {"paper"})
@@ -75,6 +78,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Modifying
     @Query(value = "UPDATE chapters SET active = true WHERE id = :id", nativeQuery = true)
     void activateById(@Param("id") Long id);
+
+    List<Chapter> findByActiveFalse();
 
     /**
      * Permanently wipes the chapter from the database.

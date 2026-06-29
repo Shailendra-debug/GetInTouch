@@ -63,4 +63,6 @@ public final class ChapterMapper {
         chapter.setDescription(dto.getDescription());
         chapter.setThumbnail(dto.getThumbnail());
     }
+
+
 }

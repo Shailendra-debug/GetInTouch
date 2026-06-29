@@ -82,6 +82,22 @@ public class QuestionController {
         return ResponseEntity.ok(questionService.getAll());
     }
 
+
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Get all active questions", description = "Returns a list of all active questions.")
+    public ResponseEntity<List<QuestionResponseDto>> getAllActiveQuestions() {
+        return ResponseEntity.ok(questionService.getAllActiveQuestions());
+    }
+
+    @GetMapping("/inactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all inactive questions", description = "Returns a list of all deactivated questions.")
+    public ResponseEntity<List<QuestionResponseDto>> getAllInactiveQuestions() {
+        return ResponseEntity.ok(questionService.getAllInactiveQuestions());
+    }
+
+
     @Operation(summary = "Get question by ID", description = "Fetches a single active question completely with its options and answers.")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}")
@@ -147,6 +163,14 @@ public class QuestionController {
     @PutMapping("/{id}/activate")
     public ResponseEntity<Void> activateQuestion(@PathVariable Long id) {
         questionService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Deactivate Question", description = "Soft-deletes an active question.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivateQuestion(@PathVariable Long id) {
+        questionService.deactivate(id);
         return ResponseEntity.ok().build();
     }
 

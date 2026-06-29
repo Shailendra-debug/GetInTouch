@@ -29,6 +29,8 @@ public interface QuizService {
      */
     List<QuizResponseWithoutQuestionsDTO> getAllActiveQuizzes();
 
+    void deactivateQuiz(Long quizId);
+
     QuizResponseWithoutQuestionsDTO getQuizSummary(Long quizId);
 
     List<QuizResponseWithoutQuestionsDTO> getGeneralQuizzesByPaper(Long paperId);

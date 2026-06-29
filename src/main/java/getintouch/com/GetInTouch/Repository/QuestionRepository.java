@@ -39,6 +39,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @EntityGraph(attributePaths = {"chapter"})
     List<Question> findByChapterIdAndChapterActiveTrue(Long chapterId);
 
+    // Eagerly loads the chapter relationship while filtering for active questions
+    @EntityGraph(attributePaths = {"chapter"})
+    List<Question> findByActiveTrue();
+
+    // Eagerly loads the chapter relationship while filtering for inactive questions
+    @EntityGraph(attributePaths = {"chapter"})
+    List<Question> findByActiveFalse();
+
     @EntityGraph(attributePaths = {"chapter"})
     List<Question> findByDifficultyAndChapterActiveTrue(Difficulty difficulty);
 

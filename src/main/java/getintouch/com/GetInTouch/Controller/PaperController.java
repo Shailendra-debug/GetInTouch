@@ -103,6 +103,13 @@ public class PaperController {
         return ResponseEntity.ok(paperService.getAllActivePapers());
     }
 
+    @GetMapping("/inactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all inactive papers", description = "Returns a sorted list of all deactivated papers.")
+    public ResponseEntity<List<PaperResponseDTO>> getAllInactivePapers() {
+        return ResponseEntity.ok(paperService.getAllInactivePapers());
+    }
+
     @GetMapping("/course/{courseId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @Operation(summary = "Get all papers by Course ID")

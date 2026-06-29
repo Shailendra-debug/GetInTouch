@@ -38,7 +38,13 @@ public interface ChapterService {
     /**
      * Retrieves all chapters in the system (including inactive ones).
      * Used mainly for administrative dashboards.
+     *
+     *
      */
+
+    ChapterResponseDTO deactivateChapter(Long id);
+
+
     List<ChapterResponseDTO> getAllChapters();
 
     /**
@@ -50,6 +56,8 @@ public interface ChapterService {
      * Retrieves all globally active chapters across all papers.
      */
     List<ChapterResponseDTO> getAllActiveChapters();
+
+    List<ChapterResponseDTO> getAllInactiveChapters();
 
     /**
      * Retrieves all chapters belonging to a specific paper.

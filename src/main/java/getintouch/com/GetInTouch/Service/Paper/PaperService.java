@@ -39,6 +39,8 @@ public interface PaperService {
 
     List<PaperResponseDTO> getAllActivePapers();
 
+    List<PaperResponseDTO> getAllInactivePapers();
+
     List<PaperResponseDTO> getPapersByCourseId(
             Long courseId
     );

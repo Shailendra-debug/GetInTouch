@@ -78,7 +78,7 @@ public class CourseController {
 
     @Operation(
             summary = "Delete Course",
-            description = "Soft deletes a course by marking it inactive."
+            description = "Deletes a course by marking it inactive."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Course deleted successfully"),

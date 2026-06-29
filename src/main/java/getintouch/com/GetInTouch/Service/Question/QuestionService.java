@@ -24,6 +24,10 @@ public interface QuestionService {
 
     List<QuestionResponseDto> getAll();
 
+    List<QuestionResponseDto> getAllActiveQuestions();
+
+    List<QuestionResponseDto> getAllInactiveQuestions();
+
     QuestionResponseDto update(Long id, QuestionUpdateRequestDto request);
 
     /**
@@ -52,6 +56,8 @@ public interface QuestionService {
     List<QuestionResponseDto> getDeactivatedQuestionsByChapter(Long chapterId);
 
     void activate(Long id);
+
+    void deactivate(Long id);
 
     void hardDelete(Long id);
 }

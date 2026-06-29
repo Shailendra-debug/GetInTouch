@@ -71,6 +71,14 @@ public class ChapterController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Deactivate a chapter", description = "Sets active flag to false. Admin only.")
+    public ResponseEntity<ChapterResponseDTO> deactivateChapter(@PathVariable Long id) {
+        ChapterResponseDTO response = chapterService.deactivateChapter(id);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(summary = "Get all chapters", description = "Fetches both active and inactive chapters.")
@@ -90,6 +98,13 @@ public class ChapterController {
     @Operation(summary = "Get all active chapters")
     public ResponseEntity<List<ChapterResponseDTO>> getAllActiveChapters() {
         return ResponseEntity.ok(chapterService.getAllActiveChapters());
+    }
+
+    @GetMapping("/inactive")
+    @PreAuthorize("hasRole('ADMIN')") // Typically restricted to ADMIN, but you can change to hasAnyRole if needed
+    @Operation(summary = "Get all inactive chapters", description = "Returns a list of all deactivated chapters.")
+    public ResponseEntity<List<ChapterResponseDTO>> getAllInactiveChapters() {
+        return ResponseEntity.ok(chapterService.getAllInactiveChapters());
     }
 
     @GetMapping("/paper/{paperId}")

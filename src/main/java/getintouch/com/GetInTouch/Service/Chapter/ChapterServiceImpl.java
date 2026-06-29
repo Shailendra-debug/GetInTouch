@@ -4,6 +4,7 @@ import getintouch.com.GetInTouch.DTO.Chapter.ChapterRequestDTO;
 import getintouch.com.GetInTouch.DTO.Chapter.ChapterResponseDTO;
 import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
 import getintouch.com.GetInTouch.Entity.Quiz.Paper;
+import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.ChapterMapper;
 import getintouch.com.GetInTouch.Repository.ChapterRepository;
 import getintouch.com.GetInTouch.Repository.PaperRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -106,6 +108,18 @@ public class ChapterServiceImpl implements ChapterService {
         return ChapterMapper.toResponseDTO(chapter, chapter.getPaper());
     }
 
+    @Override
+    @Transactional
+    public ChapterResponseDTO deactivateChapter(Long id) {
+        Chapter chapter = chapterRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with id: " + id));
+
+        chapter.setActive(false); // Or your specific status logic
+        Chapter updatedChapter = chapterRepository.save(chapter);
+
+        return ChapterMapper.toResponseDTO(updatedChapter,updatedChapter.getPaper()); // Assuming you use a mapper
+    }
+
     // =========================================================================
     // READ OPERATIONS (Read-Only)
     // =========================================================================
@@ -127,10 +141,22 @@ public class ChapterServiceImpl implements ChapterService {
         return ChapterMapper.toResponseDTO(chapter, chapter.getPaper());
     }
 
-    @Override
     public List<ChapterResponseDTO> getAllActiveChapters() {
-        // Since @SQLRestriction hides inactive chapters, this is identical to getAllChapters()
-        return getAllChapters();
+        // Fetches active chapters + papers sorted by chapter number in 1 query
+        List<Chapter> activeChapters = chapterRepository.findByActiveTrueOrderByChapterNumberAsc();
+
+        return activeChapters.stream()
+                .map(e -> ChapterMapper.toResponseDTO(e, e.getPaper()))
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<ChapterResponseDTO> getAllInactiveChapters() {
+        List<Chapter> inactiveChapters = chapterRepository.findAllDeactivatedChapters(); // Or your equivalent repository method
+        return inactiveChapters.stream()
+                .map(e->ChapterMapper.toResponseDTO(e,e.getPaper()))
+                .collect(Collectors.toList());
     }
 
     @Override

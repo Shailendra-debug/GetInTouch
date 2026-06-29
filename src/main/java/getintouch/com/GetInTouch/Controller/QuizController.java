@@ -80,6 +80,8 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getAllActiveQuizzes());
     }
 
+
+
     @Operation(summary = "Get All Quizzes", description = "Fetch all quizzes (Admin View)")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
@@ -160,6 +162,15 @@ public class QuizController {
     @PutMapping("/{quizId}/activate")
     public ResponseEntity<Void> activateQuiz(@PathVariable Long quizId) {
         quizService.activateQuiz(quizId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @Operation(summary = "Deactivate Quiz", description = "Moves an active quiz to the trash bin (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{quizId}/deactivate")
+    public ResponseEntity<Void> deactivateQuiz(@PathVariable Long quizId) {
+        quizService.deactivateQuiz(quizId);
         return ResponseEntity.ok().build();
     }
 
