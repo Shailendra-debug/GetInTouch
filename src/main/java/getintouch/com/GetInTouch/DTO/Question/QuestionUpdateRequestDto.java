@@ -22,6 +22,7 @@ public class QuestionUpdateRequestDto {
     private String imageUrl;
     private String explanation;
     private QuestionType type;
+    private Boolean active;
     private Difficulty difficulty;
     private Integer marks;
     private Long chapterId;

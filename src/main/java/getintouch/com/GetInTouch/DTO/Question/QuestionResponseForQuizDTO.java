@@ -19,6 +19,7 @@ public class QuestionResponseForQuizDTO {
     private String question;
     private List<Option> options;
     private Boolean imageQuestion;
+    private Boolean active;
     private String imageUrl;
     private QuestionType type;
     private Difficulty difficulty;

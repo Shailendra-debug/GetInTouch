@@ -26,6 +26,7 @@ public class QuestionResponseDto {
     private QuestionType type;
     private Difficulty difficulty;
     private Integer marks;
+    private Boolean active;
     private String chapterName;
     private Long chapterId;
 

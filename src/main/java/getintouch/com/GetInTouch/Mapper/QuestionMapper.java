@@ -57,6 +57,7 @@ public class QuestionMapper {
                 .type(entity.getType())
                 .difficulty(entity.getDifficulty())
                 .marks(entity.getMarks())
+                .active(entity.isActive())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -107,6 +108,7 @@ public class QuestionMapper {
         if (dto.getImageQuestion() != null) {
             entity.setImageQuestion(dto.getImageQuestion());
         }
+        entity.setActive(dto.getActive());
     }
 
     /* ---------- QUIZ VIEW ---------- */
@@ -120,6 +122,7 @@ public class QuestionMapper {
                 .id(question.getId())
                 .question(question.getQuestion())
                 .options(question.getOptions())
+                .active(question.isActive())
                 .type(question.getType())
                 .difficulty(question.getDifficulty())
                 .marks(question.getMarks())
@@ -142,6 +145,7 @@ public class QuestionMapper {
                 .type(question.getType())
                 .difficulty(question.getDifficulty())
                 .marks(question.getMarks())
+                .active(question.isActive())
                 .createdAt(question.getCreatedAt())
                 .updatedAt(question.getUpdatedAt())
                 .build();

@@ -24,6 +24,9 @@ public interface NotesRepository extends JpaRepository<Notes, Long> {
     List<Notes> findByActiveTrue();
 
     @EntityGraph(attributePaths = {"paper", "paper.course"})
+    List<Notes> findAllByActiveFalse();
+
+    @EntityGraph(attributePaths = {"paper", "paper.course"})
     Optional<Notes> findByIdAndActiveTrue(Long id);
 
     @EntityGraph(attributePaths = {"paper", "paper.course"})

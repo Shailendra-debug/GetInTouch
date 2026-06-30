@@ -2,6 +2,7 @@ package getintouch.com.GetInTouch.Controller.Note;
 
 import getintouch.com.GetInTouch.DTO.Note.NotesRequestDto;
 import getintouch.com.GetInTouch.DTO.Note.NotesResponseDto;
+import getintouch.com.GetInTouch.DTO.Note.NotesResponseForUserDto;
 import getintouch.com.GetInTouch.Service.File.FileUploadService;
 import getintouch.com.GetInTouch.Service.Note.NotesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -78,6 +79,20 @@ public class NotesAdminController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Get all active notes")
+    public ResponseEntity<List<NotesResponseDto>> getActiveNotes() {
+        return ResponseEntity.ok(service.getAllActive());
+    }
+
+    @GetMapping("/deactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all inactive notes")
+    public ResponseEntity<List<NotesResponseDto>> getDeactiveNotes() {
+        return ResponseEntity.ok(service.getDeactiveNotes());
+    }
+
     @Operation(
             summary = "Delete Note",
             description = "Delete note permanently"
@@ -106,6 +121,19 @@ public class NotesAdminController {
         return ResponseEntity.ok(
                 fileUploadService.uploadFile(file, "notes")
         );
+    }
+    @PutMapping("/{id}/active")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Activate a specific Note")
+    public ResponseEntity<NotesResponseDto> activateNote(@PathVariable Long id) {
+        return ResponseEntity.ok(service.activateNote(id));
+    }
+
+    @PutMapping("/{id}/deactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Deactivate a specific Note")
+    public ResponseEntity<NotesResponseDto> deactivateNote(@PathVariable Long id) {
+        return ResponseEntity.ok(service.deactivateNote(id));
     }
 
     @Operation(

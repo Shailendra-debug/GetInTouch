@@ -1,18 +1,19 @@
 spring:
   datasource:
-    url: jdbc:postgresql://shuttle.proxy.rlwy.net:58750/railway
-    username: postgres
-    password: YnmaXzgxzKHdBSZptTvlfOqzIZhhSPcP
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
+      # Use 'validate' or 'none' for production to protect your existing schema
       ddl-auto: update
-    show-sql: true
+    show-sql: false # Turn off verbose logs in production
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 10 # Optimised for production traffic
       connection-timeout: 30000
 
   security:
@@ -20,18 +21,18 @@ spring:
       client:
         registration:
           google:
-            client-id: 705304208528-lfi0pqo10b39kjg45atas4seq7v2mat5.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - profile
               - email
               - openid
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: shailendrakushwaha732@gmail.com
-    password: vxdqcdwpsnzjpmpc
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -40,37 +41,31 @@ spring:
             enable: true
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 jwt:
-  secret: qP3d9F7KcT8Rk6mX3Y1Y+7YxGk9Xc2M1VZpQ8Hn7Z0Q=
+  secret: ${JWT_SECRET}
   refresh-token-cookie-name: RefreshToken
   cookie-http-only: true
-  cookie-secure: false
+  cookie-secure: true # Set to true since production must use HTTPS
   cookie-same-site: Lax
-  refresh-ttl-seconds: 604800   # 7 days
+  refresh-ttl-seconds: 604800
 
 app:
   frontend:
-    url: http://127.0.0.1:5500/index.html
+    url: ${FRONTEND_URL}
   bootstrap:
     admin:
-      email: admin@getintouch.com
-      password: Admin@123
+      email: ${ADMIN_EMAIL}
+      password: ${ADMIN_PASSWORD}
 
 cloudflare:
   r2:
-    access-key: fc08233668d4d28e264fabbd7794dde3
-    secret-key: 336fb0ce97d194d8ef99921a45a7a9a9ec7a278c07d760f7e870cc5373380f48
-    endpoint: https://9c03f45b237a9a6492c697a48e8a89c6.r2.cloudflarestorage.com
-    bucket: notes-storage
-    public-url: https://pub-c5e08c6c646b4558b5953f5cdc4aa730.r2.dev
+    access-key: ${R2_ACCESS_KEY}
+    secret-key: ${R2_SECRET_KEY}
+    endpoint: ${R2_ENDPOINT}
+    bucket: ${R2_BUCKET}
+    public-url: ${R2_PUBLIC_URL}
 
 resend:
-  api-key: re_TxmxrL4z_81UTRk41LdnMWspaknnAVyzn
-
-# NOTE: You need to fill these or remove them if not used yet
-razorpay:
-  key-id: rzp_live_SznYgNT22HpguZ
-  key-secret: soEVfADk14bpa3BGQjXg4K0a
-  webhook-secret: 2D>b<Z/11K$\rxF$h!32
+  api-key: ${RESEND_API_KEY}

@@ -20,7 +20,13 @@ public interface NotesService {
 
     void delete(Long id);
 
-    List<NotesResponseForUserDto> getAllActive();
+    List<NotesResponseDto> getAllActive();
+
+    List<NotesResponseDto> getDeactiveNotes();
+
+    NotesResponseDto activateNote(Long id);
+
+    NotesResponseDto deactivateNote(Long id);
 
 
     List<NotesResponseForUserDto> findByPaperId(Long paperId);

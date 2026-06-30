@@ -99,12 +99,42 @@ public class NotesServiceImpl implements NotesService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotesResponseForUserDto> getAllActive() {
+    public List<NotesResponseDto> getAllActive() {
         log.debug("Fetching all active notes");
         return notesRepository.findByActiveTrue()
                 .stream()
-                .map(notes -> mapToUserDto(notes,false))
+                .map(this::mapToDto)
                 .toList();
+    }
+    public List<NotesResponseDto> getDeactiveNotes() {
+        return notesRepository.findAllByActiveFalse()
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public NotesResponseDto activateNote(Long id) {
+        Notes note = notesRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
+
+        note.setActive(true);
+        Notes updatedNote = notesRepository.save(note);
+
+        return mapToDto(updatedNote); // Convert entity to your DTO here
+    }
+
+    @Override
+    @Transactional
+    public NotesResponseDto deactivateNote(Long id) {
+        Notes note = notesRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
+
+        note.setActive(false);
+        Notes updatedNote = notesRepository.save(note);
+
+        return mapToDto(updatedNote); // Convert entity to your DTO here
     }
 
     @Override

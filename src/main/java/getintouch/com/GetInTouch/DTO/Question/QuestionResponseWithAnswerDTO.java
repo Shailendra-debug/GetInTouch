@@ -20,6 +20,7 @@ public class QuestionResponseWithAnswerDTO {
     private List<Option> options;
     private Boolean imageQuestion;
     private String imageUrl;
+    private Boolean active;
     private List<Integer> correct;
     private String explanation;
     private QuestionType type;
