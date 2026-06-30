@@ -84,7 +84,7 @@ public class PaperServiceImpl implements PaperService {
                         new EntityNotFoundException(
                                 "Paper not found with id: " + id));
 
-        paper.setActive(false);
+        paperRepository.deleteById(paper.getId());
     }
 
     @Override

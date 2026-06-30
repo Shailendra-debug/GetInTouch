@@ -63,9 +63,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found."));
 
-        course.setActive(false);
-
-        courseRepository.save(course);
+        courseRepository.delete(course);
     }
 
     @Override
