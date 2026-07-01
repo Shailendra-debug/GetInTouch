@@ -21,8 +21,7 @@ import java.util.List;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 /* ---------- ACTIVE (SOFT DELETE) CONFIGURATION ---------- */
-@SQLDelete(sql = "UPDATE questions SET active = false WHERE id = ?")
-@SQLRestriction("active = true")
+
 public class Question {
 
     @Id
