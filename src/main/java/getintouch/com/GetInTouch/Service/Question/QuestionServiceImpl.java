@@ -175,7 +175,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     // --- Inactive Questions Service ---
     public List<QuestionResponseDto> getAllInactiveQuestions() {
-        List<Question> inactiveQuestions = questionRepository.findByActiveFalse();
+        List<Question> inactiveQuestions = questionRepository.findAllDeactivatedQuestions();
         return inactiveQuestions.stream()
                 .map(question ->
                         mapToDtoWithChapter(

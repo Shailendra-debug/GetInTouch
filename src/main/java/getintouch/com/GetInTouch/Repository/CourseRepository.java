@@ -18,6 +18,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     // Get all active courses sorted by courseNumber
     List<Course> findByActiveTrueOrderByCourseNumberAsc();
 
+    List<Course> findByActiveFalseOrderByCourseNumberAsc();
+
     // Get all courses sorted by courseNumber
     List<Course> findAllByOrderByCourseNumberAsc();
 

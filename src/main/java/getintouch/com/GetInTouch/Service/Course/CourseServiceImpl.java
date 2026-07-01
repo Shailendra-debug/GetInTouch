@@ -113,6 +113,15 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional()
+    public List<CourseResponseDTO> getAllInactiveCourses() {
+        return courseRepository.findByActiveFalseOrderByCourseNumberAsc()
+                .stream()
+                .map(CourseMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional()
     public CourseResponseDTO getCourseById(Long id) {
 
         Course course = courseRepository.findByIdAndActiveTrue(id)

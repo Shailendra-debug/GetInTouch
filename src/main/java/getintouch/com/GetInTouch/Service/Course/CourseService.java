@@ -32,6 +32,8 @@ public interface CourseService {
 
     List<CourseResponseDTO> getAllActiveCourses();
 
+    List<CourseResponseDTO> getAllInactiveCourses();
+
     CourseResponseDTO getCourseById(Long id);
 
     CourseResponseDTO getCourseByCourseNumber(

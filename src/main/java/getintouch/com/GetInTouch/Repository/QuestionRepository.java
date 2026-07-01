@@ -45,7 +45,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     // Eagerly loads the chapter relationship while filtering for inactive questions
     @EntityGraph(attributePaths = {"chapter"})
-    List<Question> findByActiveFalse();
+    List<Question> findByActiveIsFalse();
 
     @EntityGraph(attributePaths = {"chapter"})
     List<Question> findByDifficultyAndChapterActiveTrue(Difficulty difficulty);

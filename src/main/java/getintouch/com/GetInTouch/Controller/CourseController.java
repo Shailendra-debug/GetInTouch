@@ -146,6 +146,15 @@ public class CourseController {
     }
 
     @Operation(
+            summary = "Get All Inactive Courses",
+            description = "Returns all inactive courses ordered by course number."
+    )
+    @GetMapping("/inactive")
+    public ResponseEntity<List<CourseResponseDTO>> getAllInactiveCourses() {
+        return ResponseEntity.ok(courseService.getAllInactiveCourses());
+    }
+
+    @Operation(
             summary = "Get Course By ID",
             description = "Returns an active course by its ID."
     )
