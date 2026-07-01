@@ -37,10 +37,11 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     List<Quiz> findAllByOrderByCreatedAtDesc();
 
     @EntityGraph(attributePaths = {"chapter"})
-    List<Quiz> findByChapterIdOrderByCreatedAtDesc(Long chapterId);
-
+    List<Quiz> findByChapterIdAndActiveTrueOrderByCreatedAtDesc(Long chapterId);
     @EntityGraph(attributePaths = {"chapter"})
     List<Quiz> findByTypeOrderByCreatedAtDesc(QuizType type);
+
+
 
     // =========================================================================
     // SCHEDULED QUIZZES (LIVE / EXAM)

@@ -163,6 +163,12 @@ public class QuizServiceImpl implements QuizService {
         return getAllQuizzes(); // Handled automatically by @SQLRestriction
     }
 
+    @Override
+    public List<QuizResponseWithoutQuestionsDTO> getAllInactiveQuizzes() {
+        return quizRepository.findAllDeactivatedQuizzes().stream()
+                .map(quiz -> QuizMapper.toWithoutQuestions(quiz, quiz.getChapter()))
+                .toList();
+    }
 
 
     @Override
@@ -246,7 +252,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizResponseWithoutQuestionsDTO> getQuizzesByChapter(Long chapterId) {
-        return quizRepository.findByChapterIdOrderByCreatedAtDesc(chapterId)
+        return quizRepository.findByChapterIdAndActiveTrueOrderByCreatedAtDesc(chapterId)
                 .stream()
                 .map(quiz -> QuizMapper.toWithoutQuestions(quiz, quiz.getChapter()))
                 .toList();

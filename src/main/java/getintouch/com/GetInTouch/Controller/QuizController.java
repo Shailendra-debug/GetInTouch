@@ -80,6 +80,16 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getAllActiveQuizzes());
     }
 
+    @Operation(
+            summary = "Get All Inactive Quizzes",
+            description = "Retrieves a list of all quizzes that are currently inactive. Accessible by administrators only."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getAllInactiveQuizzes() {
+        return ResponseEntity.ok(quizService.getAllInactiveQuizzes());
+    }
+
 
 
     @Operation(summary = "Get All Quizzes", description = "Fetch all quizzes (Admin View)")
@@ -128,9 +138,9 @@ public class QuizController {
        ADVANCED FETCHING
        ===================================================== */
 
-    @Operation(summary = "Get Quizzes by Chapter", description = "Fetch all quizzes belonging to a specific chapter")
+    @Operation(summary = "Get All Active Quizzes by Chapter", description = "Fetch all Active quizzes  belonging to a specific chapter")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @GetMapping("/chapter/{chapterId}")
+    @GetMapping("/active/chapter/{chapterId}")
     public ResponseEntity<List<QuizResponseWithoutQuestionsDTO>> getQuizzesByChapter(
             @PathVariable Long chapterId
     ) {
