@@ -160,7 +160,7 @@ public class QuestionController {
 
     @Operation(summary = "Reactivate Question", description = "Restores a soft-deleted question.")
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/activate")
+        @PutMapping("/{id}/activate")
     public ResponseEntity<Void> activateQuestion(@PathVariable Long id) {
         questionService.activate(id);
         return ResponseEntity.ok().build();
