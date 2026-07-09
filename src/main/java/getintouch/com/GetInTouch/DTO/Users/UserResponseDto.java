@@ -14,14 +14,24 @@ import java.time.LocalDateTime;
 public class UserResponseDto {
 
     private Long id;
+
     private String username;
+
     private String email;
+
     private String fullName;
+
     private String phone;
+
     private String profileImageUrl;
+
     private String role;
+
+    private Boolean enabled;
+
+    private Boolean accountLocked;
+
     private LocalDateTime createdAt;
 
-
-    // getters & setters
+    private LocalDateTime updatedAt;
 }

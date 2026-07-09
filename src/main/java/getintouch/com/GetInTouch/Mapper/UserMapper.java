@@ -24,6 +24,8 @@ public class UserMapper {
         dto.setPhone(user.getPhone());
         dto.setRole(user.getRole().name());
         dto.setCreatedAt(user.getCreatedAt());
+        dto.setEnabled(user.getEnabled());
+        dto.setAccountLocked(user.getAccountLocked());
         dto.setProfileImageUrl(user.getProfileImageUrl());
         return dto;
     }

@@ -20,6 +20,10 @@ import getintouch.com.GetInTouch.Repository.UserRepository;
 import getintouch.com.GetInTouch.Service.Auth.EmailService;
 import getintouch.com.GetInTouch.Util.OtpUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -159,6 +163,58 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.deleteById(id);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDto> getAllActiveUsers(int page,
+                                                   int size,
+                                                   String sortBy,
+                                                   String direction) {
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return userRepository.findByEnabledTrue(pageable)
+                .map(UserMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDto> getAllInactiveUsers(int page,
+                                                     int size,
+                                                     String sortBy,
+                                                     String direction) {
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return userRepository.findByEnabledFalse(pageable)
+                .map(UserMapper::toDto);
+    }
+    @Override
+    @Transactional
+    public void activateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        user.setEnabled(false);
+        userRepository.save(user);
     }
 
     @Override

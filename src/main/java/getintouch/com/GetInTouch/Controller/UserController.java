@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -146,17 +147,72 @@ public class UserController {
         userService.removeAdmin(id);
         return ResponseEntity.ok("ADMIN promoted to User");
     }
+    @Operation(
+            summary = "Get All Inactive Users",
+            description = "Returns a paginated list of all inactive users."
+    )
+    @ApiResponse(responseCode = "200", description = "Inactive users retrieved successfully")
+    @GetMapping("/inactive")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserResponseDto>> getAllInactiveUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return ResponseEntity.ok(
+                userService.getAllInactiveUsers(page, size, sortBy, direction)
+        );
+    }
+
+    @Operation(
+            summary = "Deactivate User",
+            description = "Deactivates an active user account (ADMIN only)"
+    )
+    @ApiResponse(responseCode = "200", description = "User deactivated successfully")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{userId}/deactivate")
+    public ResponseEntity<Void> deactivateUser(@PathVariable Long userId) {
+        userService.deactivateUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Get All Active Users",
+            description = "Returns a paginated list of all active users."
+    )
+    @ApiResponse(responseCode = "200", description = "Active users retrieved successfully")
+    @GetMapping("/active")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserResponseDto>> getAllActiveUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return ResponseEntity.ok(
+                userService.getAllActiveUsers(page, size, sortBy, direction)
+        );
+    }
+
+    @Operation(
+            summary = "Activate User",
+            description = "Reactivates a deactivated user account (ADMIN only)"
+    )
+    @ApiResponse(responseCode = "200", description = "User activated successfully")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{userId}/activate")
+    public ResponseEntity<Void> activateUser(@PathVariable Long userId) {
+        userService.activateUser(userId);
+        return ResponseEntity.ok().build();
+    }
 
     @Operation(
             summary = "Upload Profile Photo",
             description = "Upload profile photo for the currently logged-in user"
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Profile photo uploaded successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid file"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
     @PostMapping("/profile/photo")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<?> uploadProfilePhoto(
