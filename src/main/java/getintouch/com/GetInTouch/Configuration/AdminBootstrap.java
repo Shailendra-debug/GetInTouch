@@ -17,19 +17,20 @@ public class AdminBootstrap implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-   // @Value("${BOOTSTRAP_ADMIN_EMAIL:}")
+    @Value("${BOOTSTRAP_ADMIN_EMAIL:}")
     private String adminEmail;
 
-    //@Value("${BOOTSTRAP_ADMIN_PASSWORD:}")
+    @Value("${BOOTSTRAP_ADMIN_PASSWORD:}")
     private String adminPassword;
 
     @Override
     public void run(ApplicationArguments args) {
 
         // 1️⃣ Only when DB is empty
-        adminEmail="getintouch790@gmail.com";
+        //adminEmail="getintouch790@gmail.com";
 
-        adminPassword="Sunil@12#";
+        //adminPassword="Sunil@12#";
+
         if (userRepository.count() > 0) {
             return;
         }
