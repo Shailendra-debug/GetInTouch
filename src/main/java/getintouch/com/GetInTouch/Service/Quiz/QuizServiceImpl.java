@@ -185,7 +185,9 @@ public class QuizServiceImpl implements QuizService {
     public QuizResponseWithoutQuestionsDTO getQuizSummary(Long quizId) {
         Quiz quiz = quizRepository.findByIdWithChapter(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
-        return QuizMapper.toWithoutQuestions(quiz, quiz.getChapter());
+        QuizResponseWithoutQuestionsDTO responseWithoutQuestionsDTO= QuizMapper.toWithoutQuestions(quiz, quiz.getChapter());
+        responseWithoutQuestionsDTO.setTotalQuestions(quiz.getQuestions().size());
+        return responseWithoutQuestionsDTO;
     }
 
     @Override
@@ -200,7 +202,9 @@ public class QuizServiceImpl implements QuizService {
     public QuizResponseWithQuestionsDTO getQuizWithQuestions(Long quizId) {
         Quiz quiz = quizRepository.findCompleteQuizById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
-        return QuizMapper.toWithQuestions(quiz, quiz.getChapter());
+        QuizResponseWithQuestionsDTO dto= QuizMapper.toWithQuestions(quiz, quiz.getChapter());
+        dto.setTotalQuestions(quiz.getQuestions().size());
+        return dto;
     }
 
     /* =========================================================================
