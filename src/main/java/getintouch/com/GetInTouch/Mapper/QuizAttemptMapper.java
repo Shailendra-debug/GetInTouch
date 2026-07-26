@@ -61,6 +61,9 @@ QuizAttemptMapper {
                 .question(answer.getQuestion().getQuestion())
                 .options(answer.getQuestion().getOptions())
                 .explanation(answer.getQuestion().getExplanation())
+                .imageQuestion(answer.getQuestion().isImageQuestion())
+                .imageUrl(answer.getQuestion().getImageUrl())
+                .difficulty(answer.getQuestion().getDifficulty())
 
                 .selectedIndexes(
                         answer.getSelectedIndexes() != null

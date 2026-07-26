@@ -18,11 +18,11 @@ public class QuestionResponseForQuizDTO {
     private Long id;
     private String question;
     private List<Option> options;
-    private Boolean imageQuestion;
     private Boolean active;
+    private Boolean imageQuestion;
     private String imageUrl;
-    private QuestionType type;
     private Difficulty difficulty;
+    private QuestionType type;
     private Integer marks;
 }
 
