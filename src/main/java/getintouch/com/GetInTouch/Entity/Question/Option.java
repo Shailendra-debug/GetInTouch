@@ -12,4 +12,5 @@ import lombok.*;
 public class Option {
     private boolean isImg;
     private String textOrUrl;
+    private String url;
 }
