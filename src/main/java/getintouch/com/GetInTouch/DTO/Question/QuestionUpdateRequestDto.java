@@ -7,6 +7,7 @@ import getintouch.com.GetInTouch.Entity.Question.QuestionType;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,7 +18,7 @@ public class QuestionUpdateRequestDto {
 
     private String question;
     private List<Option> options;
-    private List<Integer> correct;
+    private Set<Integer> correct;
     private Boolean imageQuestion;
     private String imageUrl;
     private String explanation;

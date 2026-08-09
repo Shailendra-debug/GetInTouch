@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,7 +22,7 @@ public class QuestionResponseWithAnswerDTO {
     private Boolean imageQuestion;
     private String imageUrl;
     private Boolean active;
-    private List<Integer> correct;
+    private Set<Integer> correct;
     private String explanation;
     private QuestionType type;
     private Difficulty difficulty;

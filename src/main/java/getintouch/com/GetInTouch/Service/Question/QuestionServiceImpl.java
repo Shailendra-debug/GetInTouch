@@ -55,7 +55,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         Question question = questionMapper.toEntity(request);
         question.setChapter(chapter);
-        question.setActive(true); // Ensure new questions default to active
+        question.setActive(true);
 
         Question saved = questionRepository.save(question);
         return mapToDtoWithChapter(saved, chapter);
@@ -370,7 +370,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     private void validateCorrectIndexes(
             List<Option> options,
-            List<Integer> correctIndexes
+            Set<Integer> correctIndexes
     ) {
 
         if (options == null || options.isEmpty()) {

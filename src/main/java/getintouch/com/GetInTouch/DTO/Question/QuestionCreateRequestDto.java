@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,7 +27,7 @@ public class QuestionCreateRequestDto {
     private List<Option> options;
 
     @NotEmpty
-    private List<Integer> correct;
+    private Set<Integer> correct;
 
     private Boolean imageQuestion;
     private String imageUrl;

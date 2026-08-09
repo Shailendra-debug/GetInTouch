@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class QuestionResponseDto {
     private Long id;
     private String question;
     private List<Option> options;
-    private List<Integer> correct;
+    private Set<Integer> correct;
     private Boolean imageQuestion;
     private String imageUrl;
     private String explanation;

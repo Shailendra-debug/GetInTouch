@@ -83,7 +83,7 @@ public class QuestionController {
     }
 
 
-    @GetMapping("/active")
+        @GetMapping("/active")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @Operation(summary = "Get all active questions", description = "Returns a list of all active questions.")
     public ResponseEntity<List<QuestionResponseDto>> getAllActiveQuestions() {
