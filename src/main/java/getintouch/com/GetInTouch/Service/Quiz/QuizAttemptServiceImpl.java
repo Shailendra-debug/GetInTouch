@@ -71,7 +71,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
             QuestionAnswerDto ans = answerMap.get(q.getId());
             if (ans == null) continue;
 
-            attempted++;
+            if (!ans.getSelectedIndexes().isEmpty()) attempted++;
 
             boolean isCorrect =
                     new HashSet<>(q.getCorrect())
