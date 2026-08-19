@@ -75,6 +75,7 @@ public class QuizServiceImpl implements QuizService {
                 .thumbnail(request.getThumbnail())
                 .type(request.getType())
                 .chapter(chapter)
+                .showResult(request.getShowResult())
                 .passMarks(request.getPassingMarks())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
@@ -131,6 +132,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setEndTime(request.getEndTime());
         quiz.setQuestions(questions);
         quiz.setThumbnail(request.getThumbnail());
+        quiz.setShowResult(request.getShowResult());
 
         Quiz updated = quizRepository.save(quiz);
         return QuizMapper.toWithQuestions(updated, chapter);
