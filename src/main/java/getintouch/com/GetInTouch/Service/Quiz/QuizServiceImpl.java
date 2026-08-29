@@ -132,7 +132,6 @@ public class QuizServiceImpl implements QuizService {
         quiz.setEndTime(request.getEndTime());
         quiz.setQuestions(questions);
         quiz.setThumbnail(request.getThumbnail());
-        quiz.setShowResult(request.getShowResult());
 
         Quiz updated = quizRepository.save(quiz);
         return QuizMapper.toWithQuestions(updated, chapter);

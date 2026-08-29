@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -22,6 +21,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
                 "https://zippy-hummingbird-7f2028.netlify.app",
+                "https://getintouch24admin.netlify.app",
                 "https://getintouch24.netlify.app"
         ));
 
