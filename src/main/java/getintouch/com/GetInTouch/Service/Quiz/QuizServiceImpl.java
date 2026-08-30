@@ -130,6 +130,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setPassMarks(request.getPassingMarks());
         quiz.setStartTime(request.getStartTime());
         quiz.setEndTime(request.getEndTime());
+        quiz.setShowResult(request.getShowResult());
         quiz.setQuestions(questions);
         quiz.setThumbnail(request.getThumbnail());
 

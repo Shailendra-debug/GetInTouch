@@ -43,7 +43,7 @@ public class AdminBootstrap implements ApplicationRunner {
 
         User admin = new User();
         admin.setUsername("admin");
-        admin.setEmail("admin@getintouch.com");
+        admin.setEmail("srajendra790@gmail.com");
         admin.setPassword(passwordEncoder.encode("Admin@123"));
         admin.setRole(Role.ADMIN);
         admin.setEnabled(true);
