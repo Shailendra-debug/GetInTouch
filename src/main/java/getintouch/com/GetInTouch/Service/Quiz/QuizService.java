@@ -18,6 +18,8 @@ public interface QuizService {
 
     void deleteQuiz(Long quizId);
 
+    String deleteByQuizIdAndQuestionId(Long quizId,Long questionId);
+
     // =========================================================================
     // CORE READ OPERATIONS
     // =========================================================================

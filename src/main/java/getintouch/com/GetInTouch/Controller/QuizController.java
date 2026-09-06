@@ -69,6 +69,16 @@ public class QuizController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Delete Question From Quiz", description = "Hard delete a quiz (ADMIN only)")
+    @ApiResponse(responseCode = "204", description = "Quiz deleted successfully")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{quizId}/question/{questionId}")
+    public ResponseEntity<String> deleteByQuizIdAndQuestionId(@PathVariable Long quizId,@PathVariable Long questionId) {
+        System.out.println("quizId : "+quizId+"questionId: "+questionId+" Cantrolar");
+
+        return ResponseEntity.ok(quizService.deleteByQuizIdAndQuestionId(quizId,questionId));
+    }
+
     /* =====================================================
        READ OPERATIONS
        ===================================================== */

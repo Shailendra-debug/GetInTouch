@@ -61,6 +61,7 @@ public class NotesUserController {
     public ResponseEntity<PaymentInitiateResponseDTO> bayNores(
             @PathVariable Long notesId) {
         Long currentUser = SecurityUtil.getCurrentUserId();
+        System.out.println("Notes Id "+notesId);
         return ResponseEntity.ok(notesService.PurchaseNotesById(currentUser,notesId));
     }
 

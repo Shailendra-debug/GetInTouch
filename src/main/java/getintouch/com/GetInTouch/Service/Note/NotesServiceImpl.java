@@ -227,6 +227,8 @@ public class NotesServiceImpl implements NotesService {
         Notes note = notesRepository.findById(notesId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cannot initiate purchase order on dead entity ID."));
         try {
+            System.out.println("Nots prise "+note.getPrice());
+
             return paymentService.initiatePayment(new PaymentRequestDTO(userId, notesId, note.getPrice(), "INR"));
         } catch (Exception e) {
             log.error("Failed to generate payment voucher order context with payment provider: ", e);

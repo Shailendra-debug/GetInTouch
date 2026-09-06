@@ -4,6 +4,7 @@ package getintouch.com.GetInTouch.Repository;
 
 import getintouch.com.GetInTouch.Entity.Quiz.Quiz;
 import getintouch.com.GetInTouch.Entity.Quiz.QuizType;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -102,4 +103,17 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
         DELETE FROM quizzes WHERE id = :id;
     """, nativeQuery = true)
     void hardDeleteById(@Param("id") Long id);
+
+
+    @Modifying
+    @Query(
+            value = "DELETE FROM quiz_questions " +
+                    "WHERE quiz_id = :quizId " +
+                    "AND question_id = :questionId",
+            nativeQuery = true
+    )
+    int deleteQuestionFromQuiz(
+            @Param("quizId") Long quizId,
+            @Param("questionId") Long questionId
+    );
 }

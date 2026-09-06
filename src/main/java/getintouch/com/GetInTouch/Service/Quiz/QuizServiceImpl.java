@@ -4,11 +4,7 @@ import getintouch.com.GetInTouch.DTO.Quiz.QuizRequestDTO;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizResponseWithQuestionsDTO;
 import getintouch.com.GetInTouch.DTO.Quiz.QuizResponseWithoutQuestionsDTO;
 import getintouch.com.GetInTouch.Entity.Question.Question;
-import getintouch.com.GetInTouch.Entity.Quiz.Chapter;
-import getintouch.com.GetInTouch.Entity.Quiz.Quiz;
-import getintouch.com.GetInTouch.Entity.Quiz.QuizAttempt;
-import getintouch.com.GetInTouch.Entity.Quiz.QuizType;
-import getintouch.com.GetInTouch.Entity.Quiz.ResultStatus;
+import getintouch.com.GetInTouch.Entity.Quiz.*;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import getintouch.com.GetInTouch.Exception.ResourceNotFoundException;
 import getintouch.com.GetInTouch.Mapper.QuizMapper;
@@ -146,6 +142,30 @@ public class QuizServiceImpl implements QuizService {
         }
         // Triggers @SQLDelete for soft deletion
         quizRepository.deleteById(quizId);
+    }
+
+    @Override
+    @Transactional
+    public String deleteByQuizIdAndQuestionId(Long quizId, Long questionId) {
+
+        if (quizRepository.existsById(quizId)){
+            int deleted = quizRepository.deleteQuestionFromQuiz(
+                    quizId,
+                    questionId
+            );
+
+            System.out.println("quizId : "+quizId+"questionId: "+questionId+" Servis");
+
+            if (deleted == 0) {
+                throw new ResourceNotFoundException(
+                        "Question is not assigned to this quiz"
+                );
+            }
+        }else {
+            throw new ResourceNotFoundException("Quiz Not Found By: "+quizId);
+        }
+
+        return "Question Deleted From Quiz";
     }
 
     /* =========================================================================
