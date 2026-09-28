@@ -15,7 +15,8 @@ public class EmailService {
     @Value("${resend.api-key}")
     private String apiKey;
 
-    private static final String FROM_EMAIL = "support@skushwaha.in";
+    @Value("${resend.from-email")
+    private  String FROM_EMAIL ;
 
     public void sendRegisterOtp(String to, String otp) {
         sendEmail(to, "Verify Your Email", buildRegisterTemplate(otp));

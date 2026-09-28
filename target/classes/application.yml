@@ -80,3 +80,4 @@ cloudflare:
 
 resend:
   api-key: ${RESEND_API_KEY}
+  from-email: ${FROM_EMAIL}
