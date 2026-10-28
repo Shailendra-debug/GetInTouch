@@ -182,8 +182,11 @@ public class AuthService {
                 .attemptCount(0)
                 .createdAt(LocalDateTime.now())
                 .build();
+        System.out.println("reqat in sarvis");
+
 
         emailService.sendResetOtp(email, otp);
+        System.out.println("reqat in sarvis after send emal");
         otpRepo.save(entity);
 
 

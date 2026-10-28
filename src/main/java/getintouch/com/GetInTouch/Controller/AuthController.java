@@ -155,17 +155,23 @@ public class AuthController {
     })
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponseDTO<ForgotPasswordResponseDto>> forgotPassword(
+    public ResponseEntity<ApiResponseDTO<ForgotPasswordResponseDto>>
+    forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
 
-        ForgotPasswordResponseDto response = authService.sendOtp(request);
+        System.out.println("Forgot password request received");
 
-        if (response.isOtpSent())
-            return ResponseEntity.ok(
-                ResponseUtil.success("If email exists, OTP sent", response)
-        );
+        ForgotPasswordResponseDto response =
+                authService.sendOtp(request);
+
+        System.out.println("OTP sent status: " + response.isOtpSent());
+
         return ResponseEntity.ok(
-                ResponseUtil.success("Email Not Exists, OTP Not sent", response));
+                ResponseUtil.success(
+                        "If email exists, OTP sent",
+                        response
+                )
+        );
     }
 
     @Operation(

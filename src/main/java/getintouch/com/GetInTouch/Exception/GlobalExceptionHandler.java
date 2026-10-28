@@ -42,17 +42,17 @@ public class GlobalExceptionHandler {
     }
 
     /* ---------- 401 ---------- */
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException ex) {
-
-        ApiError error = new ApiError();
-        error.setStatus(401);
-        error.setError("UNAUTHORIZED");
-        error.setMessage(ex.getMessage());
-        error.setTimestamp(LocalDateTime.now());
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
+//    @ExceptionHandler(UnauthorizedException.class)
+//    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException ex) {
+//
+//        ApiError error = new ApiError();
+//        error.setStatus(401);
+//        error.setError("UNAUTHORIZED");
+//        error.setMessage(ex.getMessage());
+//        error.setTimestamp(LocalDateTime.now());
+//
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+//    }
 
     /* ---------- Validation Errors ---------- */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -73,21 +73,21 @@ public class GlobalExceptionHandler {
     }
 
     /* ---------- Fallback (500) ---------- */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleAll(Exception ex) {
-
-        if (ex instanceof org.springframework.security.access.AccessDeniedException) {
-            throw (org.springframework.security.access.AccessDeniedException) ex;
-        }
-
-        ApiError error = new ApiError();
-        error.setStatus(500);
-        error.setError("INTERNAL_SERVER_ERROR");
-        error.setMessage(ex.getMessage());
-        error.setTimestamp(LocalDateTime.now());
-
-        return ResponseEntity.internalServerError().body(error);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiError> handleAll(Exception ex) {
+//
+//        if (ex instanceof org.springframework.security.access.AccessDeniedException) {
+//            throw (org.springframework.security.access.AccessDeniedException) ex;
+//        }
+//
+//        ApiError error = new ApiError();
+//        error.setStatus(500);
+//        error.setError("INTERNAL_SERVER_ERROR");
+//        error.setMessage(ex.getMessage());
+//        error.setTimestamp(LocalDateTime.now());
+//
+//        return ResponseEntity.internalServerError().body(error);
+//    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponseDTO<Void>> handleRuntime(RuntimeException ex) {

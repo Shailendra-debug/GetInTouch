@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import java.util.TimeZone;
 
 @SpringBootApplication
+
 @EnableMethodSecurity(prePostEnabled = true)
 
 public class GetInTouchApplication {

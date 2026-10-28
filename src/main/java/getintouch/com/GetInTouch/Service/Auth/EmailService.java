@@ -1,7 +1,9 @@
 package getintouch.com.GetInTouch.Service.Auth;
 
 import com.resend.Resend;
+import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import getintouch.com.GetInTouch.Exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +13,39 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-    
+
     @Value("${resend.api-key}")
     private String apiKey;
 
-    @Value("${resend.from-email")
-    private  String FROM_EMAIL ;
+    @Value("${resend.from-email}")
+    private String fromEmail;
+
+    private Resend resend;   // lazily initialised once
+
+    private Resend client() {
+        if (resend == null) {
+            resend = new Resend(apiKey.trim());   // trim guards against trailing \n in .env
+        }
+        return resend;
+    }
+
+    private void sendEmail(String to, String subject, String htmlContent) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(to)
+                .subject(subject)
+                .html(htmlContent)
+                .build();
+
+        try {
+            CreateEmailResponse response = client().emails().send(params);
+            //log.info("Resend OK. id={} to={}", response.getId(), to);
+        } catch (ResendException e) {
+            //log.error("Resend API error for {}: {}", to, e.getMessage(), e);
+            // 500 – not the client's fault
+            throw new IllegalStateException("Email provider error", e);
+        }
+    }
 
     public void sendRegisterOtp(String to, String otp) {
         sendEmail(to, "Verify Your Email", buildRegisterTemplate(otp));
@@ -26,49 +55,16 @@ public class EmailService {
         sendEmail(to, "Reset Your Password", buildResetTemplate(otp));
     }
 
-    /**
-     * Sends a stylized payment status email to the user.
-     */
-    public void sendPaymentStatusEmail(
-            String to,
-            String userName,
-            String orderId,
-            String paymentId,
-            String amount,
-            String status) {
-
-        // Dynamically tailor the subject line based on the transaction result
+    public void sendPaymentStatusEmail(String to, String userName, String orderId,
+                                       String paymentId, String amount, String status) {
         String subject = switch (status.toUpperCase()) {
-            case "SUCCESS" -> "🎉 Payment Successful - GetInTouch";
-            case "FAILED" -> "❌ Payment Failed - GetInTouch";
+            case "SUCCESS"       -> "🎉 Payment Successful - GetInTouch";
+            case "FAILED"        -> "❌ Payment Failed - GetInTouch";
             case "ADMIN_GRANTED" -> "🎉 Pay By ADMIN - GetInTouch";
-            default -> "⏳ Payment Update - GetInTouch";
+            default              -> "⏳ Payment Update - GetInTouch";
         };
-
-        String htmlContent = buildPaymentStatusTemplate(userName, orderId, paymentId, amount, status);
-        sendEmail(to, subject, htmlContent);
+        sendEmail(to, subject, buildPaymentStatusTemplate(userName, orderId, paymentId, amount, status));
     }
-
-    // 🔥 Common method
-    private void sendEmail(String to, String subject, String htmlContent) {
-        try {
-            Resend resend = new Resend(apiKey);
-
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from(FROM_EMAIL)
-                    .to(to)
-                    .subject(subject)
-                    .html(htmlContent)
-                    .build();
-
-            resend.emails().send(params);
-
-        } catch (Exception e) {
-            // log internally (add logger if needed)
-            throw new BadRequestException("Unable to send email. Please try again.");
-        }
-    }
-
     // 🔥 Register Template
     private String buildRegisterTemplate(String otp) {
         return """
